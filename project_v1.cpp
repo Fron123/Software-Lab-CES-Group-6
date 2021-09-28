@@ -138,10 +138,10 @@ void input_F(
 ){
     std::array<T,N> cdf;
     unsigned int** uip2_SparsityPattern = new unsigned int**;
+    std::array<std::array<T,N>,N> cdf_jacobian;
     
         for (int i = 0; i<y::size(); i++) {
-            Cdf(xv,p,yv[i],cdf)
-            std::array<std::array<T,N>,N> cdf_jacobian;
+            Cdf(xv,p,yv[i],cdf);
             for(int j=0;j<cdf.size();j++) {
                 cdf_jacobian[i][j] = cdf[j];
                 uip2_SparsityPattern[i][j] = 1 - cdf_jacobian[i][j];
