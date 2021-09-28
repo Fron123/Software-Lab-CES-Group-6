@@ -138,16 +138,16 @@ void input_F(
 ){
     std::array<T,N> cdf;
     unsigned int** uip2_SparsityPattern = new unsigned int**;
-    if typeid(y).name() == /*array Datentyp */ {
+    
         for (int i = 0; i<y::size(); i++) {
-            Cdf(x,p,yv[i],cdf)
+            Cdf(xv,p,yv[i],cdf)
             std::array<std::array<T,N>,N> cdf_jacobian;
             for(int j=0;j<cdf.size();j++) {
                 cdf_jacobian[i][j] = cdf[j];
                 uip2_SparsityPattern[i][j] = 1 - cdf_jacobian[i][j];
             }
         }
-    }
+    
     //Matrix Komprimieren Comp: ColPack
     string s_OrderingVariant = "LARGEST_FIRST";
     string s_ColoringVariant = "DISTANCE ONE";
