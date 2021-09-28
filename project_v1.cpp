@@ -133,19 +133,17 @@ template<typename T, typename TP, size_t N, size_t NP>
 void input_F(
     const std::array<T,N>& xv,
     const std::array<TP,NP>& p,
-    T& yv,
-    //std::array<T,N>& dydx_v,
-    //std::array<std::array<T,N>,N>& ddydxx_v,
+    std::array<T,N>& yv,
     double*** dp3_seed
 ){
     std::array<T,N> cdf;
+    unsigned int** uip2_SparsityPattern = new unsigned int**;
     if typeid(y).name() == /*array Datentyp */ {
         for (int i = 0; i<y::size(); i++) {
-            Cdf(x,p,y[i],cdf)
+            Cdf(x,p,yv[i],cdf)
             std::array<std::array<T,N>,N> cdf_jacobian;
             for(int j=0;j<cdf.size();j++) {
                 cdf_jacobian[i][j] = cdf[j];
-                //uip2_SparsityPattern = Matrix voller 1er - cdf_jacobian;
                 uip2_SparsityPattern[i][j] = 1 - cdf_jacobian[i][j];
             }
         }
@@ -156,17 +154,22 @@ void input_F(
 
     ColPack::GraphColoringInterface * GCI = new ColPack::GraphColoringInterface(SRC_MEM_ADOLC, uip2_SparsityPattern, i_rowCount);
     (*dp3_Seed) = GCI->GetSeedHessian(sparsityPattern, rowCount, columnCount, dp3_Seed, seedRowCount, seedColumnCount, s_orderingVariant, s_coloringVariant)
-        
+
+
+    //newtonverfahren aufrufen
+    //eventuell einfach extern in main/function-file    
     Newton (dp3_seed);
     
 }
 
 template<typename T, typename TP, size_t N, size_t NP>
 void input_f(
-    //möglicher input
+    const std::array<T,N>& xv,
+    const std::array<TP,NP>& p,
+    T& yv,
 ){
-    grad_f(x,p,y,dydx);
-    input_F(x,p,y,dydx);
+    grad_f(xv,p,yv,dydx);
+    input_F(xv,p,dydx);
     //eingabe genau anschauen, was brauchen wir hier?
 }
 int main() {
