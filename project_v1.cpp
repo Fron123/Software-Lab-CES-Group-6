@@ -3,6 +3,7 @@
 #include <array> 
 #include <cmath>
 #include <typeinfo>
+#include <string>
 
 template<typename T, typename TP, size_t N, size_t NP> 
 void F(
@@ -94,7 +95,7 @@ void S_jacobi_F(
     T& yv,
     std::array<bool,N> &dSddf
 ) {
-    using DCO_T=dc0::p1f::type;
+    using DCO_T=dco::p1f::type;
     std::array<DCO_T,N> x,dydx;
     DCO_T y;
     for (size_t i =0;i<N;i++) {
@@ -103,7 +104,7 @@ void S_jacobi_F(
     }
     grad_f(x,p,y,dydx);
     dco::p1f::get(y,yv);
-    for (size_t i=0;i<N;i++) dco::p1f::get(dydx[i],dsddf[i],0);
+    for (size_t i=0;i<N;i++) dco::p1f::get(dydx[i],dSddf[i],0);
 }
 
 template<typename T, typename TP, size_t N, size_t NP>
@@ -114,17 +115,18 @@ void C_grad_f(
     std::array<T,N>& cdf
 ) {
     std::array<T,N> dydx;
-    grad_f(x,p,y,dydx);
+    grad_f(xv,p,yv,dydx);
 
     std::array<std::array<T,N>,N> ddydxx;
-    jacobi_F(x,p,y,dydx,ddydxx);
+    jacobi_F(xv,p,yv,dydx,ddydxx);
 
     std::array<bool,N> sdf;
-    S_grad_f(x,p,y,sdf);
+    S_grad_f(xv,p,yv,sdf);
 
     std::array<bool,N> dsddf;
-    S_jacobi_F(x,p,y,dsddf);
-
+    S_jacobi_F(xv,p,yv,dsddf);
+    
+    for(int i=0;i<N,i++)
     cdf[i] = (sdf[i]!=dsddf[i]);
 }
 
@@ -140,7 +142,7 @@ void input_F(
     unsigned int** uip2_SparsityPattern = new unsigned int**;
     std::array<std::array<T,N>,N> cdf_jacobian;
     
-        for (int i = 0; i<y::size(); i++) {
+        for (int i = 0; i<yv.size(); i++) {
             Cdf(xv,p,yv[i],cdf);
             for(int j=0;j<cdf.size();j++) {
                 cdf_jacobian[i][j] = cdf[j];
@@ -149,8 +151,8 @@ void input_F(
         }
     
     //Matrix Komprimieren Comp: ColPack
-    string s_OrderingVariant = "LARGEST_FIRST";
-    string s_ColoringVariant = "DISTANCE ONE";
+    std::string s_OrderingVariant = "LARGEST_FIRST";
+    std::string s_ColoringVariant = "DISTANCE ONE";
 
     ColPack::GraphColoringInterface * GCI = new ColPack::GraphColoringInterface(SRC_MEM_ADOLC, uip2_SparsityPattern, i_rowCount);
     (*dp3_Seed) = GCI->GetSeedHessian(sparsityPattern, rowCount, columnCount, dp3_Seed, seedRowCount, seedColumnCount, s_orderingVariant, s_coloringVariant)
@@ -168,7 +170,9 @@ void input_f(
     const std::array<TP,NP>& p,
     T& yv,
 ){
+    std::array<T,N> dydx;
     grad_f(xv,p,yv,dydx);
+    double*** dp3_seed = new double***;
     input_F(xv,p,dydx);
     //eingabe genau anschauen, was brauchen wir hier?
 }
