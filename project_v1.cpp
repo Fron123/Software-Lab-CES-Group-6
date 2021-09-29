@@ -153,14 +153,18 @@ void input_F(
     //Matrix Komprimieren Comp: ColPack
     std::string s_OrderingVariant = "LARGEST_FIRST";
     std::string s_ColoringVariant = "DISTANCE ONE";
+    int i_rowCount = N;
+    int* ip1_SeedRowCount = new int*;
+    int* ip1_SeedColumnCount = new int*;
+
 
     ColPack::GraphColoringInterface * GCI = new ColPack::GraphColoringInterface(SRC_MEM_ADOLC, uip2_SparsityPattern, i_rowCount);
-    (*dp3_Seed) = GCI->GetSeedHessian(sparsityPattern, rowCount, columnCount, dp3_Seed, seedRowCount, seedColumnCount, s_orderingVariant, s_coloringVariant)
-
+    GCI->Coloring(s_OrderingVariant,s_ColoringVariant);
+    (*dp3_seed) = GCI->GetSeedMatrix(ip1_SeedRowCount,ip1_SeedColumnCount);
 
     //newtonverfahren aufrufen
     //eventuell einfach extern in main/function-file    
-    Newton (dp3_seed);
+    //Newton (dp3_seed);
     
 }
 
