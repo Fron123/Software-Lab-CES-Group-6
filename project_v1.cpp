@@ -69,6 +69,33 @@ void ddf(
     }
 }
 
+
+//neue Mehtode für f'''
+template<typename T, typename TP, size_t N, size_t NP>
+void dddf(
+    const std::array<T,N>& xv,
+    const std::array<tP,NP>& p,
+    T& yv,
+    std::array<T,N>& dydx_v,
+    std::array<std::array<T,N>,N>& ddydxx_v,
+    std::array<std::array<std::array<T,N>,N>,N>& dddydxxx
+){
+    typedef typename dco::gt1s<T,N>::type DCO_T;
+    std::array<DCO_T,N> x,dydx;
+    std::array<std::array<DCO_T,N>,N> ddydxx;
+    DCO_T y;
+    for(size_t i=0;i<N,i++) {
+        x[i]=xv[i];
+        //was ist mit Zeile 62 ?
+    }
+    ddf(x,p,y,dydx,ddydxx);
+    yv=dco::value(y);
+    for (size_t i=0;i<N;i++) {
+        for (size_t j=0;j<N;j++) ddydxx_v[i][j] = dco::value(ddydxx[i][j]);
+        for (size_t k=0;k<N;k++) dddydxxx[i][j][k]=dco::derivative(ddydxx[i][j])[k];
+    }
+}
+
 template<typename T, typename TP, size_t N, size_t NP> 
 void Sdf(
     const std::array<T,N>& xv, 
@@ -196,7 +223,7 @@ int main() {
     std::array<T,N> x={1,1};
     std::array<TP,NP> p={1.1};
     T y; 
-    
+
     std::cout << "f:" << std::endl;
     f(x,p,y);
     std::cout << y << std::endl;
