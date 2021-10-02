@@ -23,7 +23,7 @@ void f(
 }
 
 template<typename T, typename TP, size_t N, size_t NP> 
-void grad_f(
+void df(
     const std::array<T,N>& xv, 
     const std::array<TP,NP>& p, 
     T& yv,
@@ -47,7 +47,7 @@ void grad_f(
 }
 
 template<typename T, typename TP, size_t N, size_t NP> 
-void jacobi_F(
+void ddf(
     const std::array<T,N>& xv,
     const std::array<TP,NP>& p,
     T& yv,
@@ -61,7 +61,7 @@ void jacobi_F(
         x[i]=xv[i];
         dco::derivative(x[i])[i]=1;
     }
-    grad_f(x,p,y,dydx); 
+    df(x,p,y,dydx); 
     yv=dco::value(y);
     for (size_t i=0;i<N;i++) {
         dydx_v[i]=dco::value(dydx[i]); 
@@ -70,7 +70,7 @@ void jacobi_F(
 }
 
 template<typename T, typename TP, size_t N, size_t NP> 
-void S_grad_f(
+void Sdf(
     const std::array<T,N>& xv, 
     const std::array<TP,NP>& p, 
     T& yv,
@@ -89,7 +89,7 @@ void S_grad_f(
 }
 
 template<typename T, typename TP, size_t N, size_t NP>
-void S_jacobi_F(
+void dSddf(
     const std::array<T,N>& xv,
     const std::array<TP,NP>& p,
     T& yv,
@@ -102,10 +102,12 @@ void S_jacobi_F(
         x[i]=xv[i];
         dco::p1f::set(x[i],true,0);
     }
-    grad_f(x,p,y,dydx);
+    df(x,p,y,dydx);
     dco::p1f::get(y,yv);
     for (size_t i=0;i<N;i++) dco::p1f::get(dydx[i],dSddf[i],0);
 }
+
+/*
 
 template<typename T, typename TP, size_t N, size_t NP>
 void C_grad_f(
@@ -129,6 +131,11 @@ void C_grad_f(
     for(int i=0;i<N,i++)
     cdf[i] = (sdf[i]!=dsddf[i]);
 }
+
+*/
+
+
+/*
 
 //input F:
 template<typename T, typename TP, size_t N, size_t NP> 
@@ -180,11 +187,54 @@ void input_f(
     input_F(xv,p,dydx);
     //eingabe genau anschauen, was brauchen wir hier?
 }
+
+*/
+
 int main() {
     using T=double; using TP=float;
-    //initialisierung
     const size_t N=2, NP=1;
     std::array<T,N> x={1,1};
     std::array<TP,NP> p={1.1};
-    Ty; 
-}
+    T y; 
+    
+    std::cout << "f:" << std::endl;
+    f(x,p,y);
+    std::cout << y << std::endl;
+
+    std::cout << "df:" << std::endl;
+    std::array<T,N> dydx;
+    df(x,p,y,dydx);
+    for (const auto& i:dydx) std::cout << i << std::endl;
+
+    std::cout << "ddf:" << std::endl;
+    std::array<std::array<T,N>,N> ddydxx;
+    ddf(x,p,y,dydx,ddydxx);
+    for (const auto& i:ddydxx)
+    for (const auto& j:i)
+    std::cout << j << std::endl;
+
+    //Kommentar für My: 
+    //Methode dddf prüfen, schauen ob der output richtig ist, wenn nicht fehler finden und anpassen
+    std::cout <<"dddf:" << std::endl;
+    std::array<std::array<std::array<T,N>,N>,N> dddydxxx;
+    dddf(x,p,y,dydx,ddydxx,dddydxxx);
+    for (const auto& i:dddydxxx)
+    for (const auto& j:i)
+    for (const auto& k:j)
+    std::cout << k << std::endl;
+    
+    std::cout << "Sdf:" << std::endl;
+    std::array<bool,N> sdf;
+    Sdf(x,p,y,sdf);
+    for (const auto& i:sdf) std::cout << i << std::endl;
+
+    std::cout << "dSddf:" << std::endl;
+    std::array<bool,N> dsddf;
+    dSddf(x,p,y,dsddf);
+    for (const auto& i:dsddf) std::cout << i << std::endl;
+
+    std::cout << "Cdf:" << std::endl; 
+    for (size_t i=0;i<N;i++)
+        std::cout << (sdf[i]!=dsddf[i]) << std::endl; 
+    return 0;
+    
