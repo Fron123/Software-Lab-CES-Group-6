@@ -245,6 +245,66 @@ void input_f(
 
 */
 
+
+/*
+//Graphcoloring Flo
+template<typename T, typename TP, size_t N, size_t NP> 
+void input_F(
+    const std::array<T,N>& xv,
+    const std::array<TP,NP>& p,
+    std::array<T,N>& yv,
+    double*** dp3_seed
+	){
+		zuerst muss die Jacobi Matrix in ein Matrix Marketformat überführt werden
+		Ne ich Lüge ich benutze direkt das Row Compressed format
+		
+	std::array<T,N> cdf;
+    std::array<std::array<T,N>,N> cdf_jacobian;
+    
+        for (int i = 0; i<yv.size(); i++) {
+            Cdf(xv,p,yv[i],cdf);
+            for(int j=0;j<cdf.size();j++) {
+                cdf_jacobian[i][j] = cdf[j];
+            }
+        }
+		
+	string Matrixmaket, s1;
+	int treffer = 0;
+	
+    for (int i = 0; i<yv.size(); i++) {
+		for(int j=0;j<cdf.size();j++) {
+			if(cdf_jacobian[i][j] != 0){
+				s1.insert(i,' ',j,' ',cdf_jacobian[i][j],"\n")
+				treffer = treffer +1;
+			}
+		}
+	}
+		
+	Matrixmaket.insert(yv.size(),' ',cdf.size(),' ',treffer,'\n',s1)  Ob das alles so richtig ist weiß ich nicht es klingt auf jedenfall logisch und würde die richtige Ausgabe erzeugen 
+	
+	ConvertMatrixMarketFormatToRowCompressedFormat(Matrixmaket, uip3_SparsityPattern, dp3_Value,rowCount, columnCount);
+		
+	cout<<"(*uip3_SparsityPattern)"<<endl;
+    displayCompressedRowMatrix((*uip3_SparsityPattern),rowCount);
+    cout<<"(*dp3_Value)"<<endl;
+    displayCompressedRowMatrix((*dp3_Value),rowCount);
+    cout<<"Finish ConvertMatrixMarketFormatToRowCompressedFormat()"<<endl;
+    Pause();				
+
+	double*** dp3_Seed = new double**;
+	int *ip1_SeedRowCount = new int;
+	int *ip1_SeedColumnCount = new int;
+	int *ip1_ColorCount = new int;
+
+	g->PartialDistanceTwoColoring("SMALLEST_LAST", "COLUMN_PARTIAL_DISTANCE_TWO");
+	(*dp3_Seed) = g->GetSeedMatrix(ip1_SeedRowCount, ip1_SeedColumnCount);
+
+*/
+
+
+
+
+
 int main() {
     using T=double; using TP=float;
     const size_t N=2, NP=1;
