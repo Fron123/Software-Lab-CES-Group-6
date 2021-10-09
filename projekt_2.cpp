@@ -195,9 +195,7 @@ void C_grad_f(
 //input F:
 template<typename T, typename TP, size_t N, size_t NP> 
 void input_F(
-    const std::array<T,N>& xv,
-    const std::array<TP,NP>& p,
-    std::array<T,N>& yv,
+    
     double*** dp3_seed
 ){
     std::array<T,N> cdf;
@@ -246,18 +244,16 @@ void input_f(
 */
 
 
-/*
+
 //Graphcoloring Flo
 template<typename T, typename TP, size_t N, size_t NP> 
 void input_F(
-    const std::array<T,N>& xv,
-    const std::array<TP,NP>& p,
-    std::array<T,N>& yv,
+    const std::array<std::array<T,N>,N>& ddydxx,
     double*** dp3_seed
 	){
 		zuerst muss die Jacobi Matrix in ein Matrix Marketformat überführt werden
 		Ne ich Lüge ich benutze direkt das Row Compressed format
-		
+	/*	
 	std::array<T,N> cdf;
     std::array<std::array<T,N>,N> cdf_jacobian;
     
@@ -267,10 +263,11 @@ void input_F(
                 cdf_jacobian[i][j] = cdf[j];
             }
         }
-		
+	*/	
 	string Matrixmaket, s1;
 	int treffer = 0;
-	
+	//for-schleife anpassen
+	//Matrix-Name ändern
     for (int i = 0; i<yv.size(); i++) {
 		for(int j=0;j<cdf.size();j++) {
 			if(cdf_jacobian[i][j] != 0){
