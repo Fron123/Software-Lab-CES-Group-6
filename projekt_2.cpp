@@ -4,7 +4,6 @@
 #include <cmath>
 #include <typeinfo>
 #include <string>
-#include <vector>
 
 template<typename T, typename TP, size_t N, size_t NP> 
 void F(
@@ -20,7 +19,7 @@ void f(
     T& y
 ){
     using namespace std; 
-    y=p[0]*x[0]*x[0]*x[1]+exp(x[1]);
+    y=p[0]*x[0]+sin(x[1]);
 }
 
 template<typename T, typename TP, size_t N, size_t NP> 
@@ -71,7 +70,7 @@ void ddf(
 }
 
 
-//neue Mehtode fÃ¼r f'''
+//neue Mehtode für f'''
 template<typename T, typename TP, size_t N, size_t NP>
 void dddf(
     const std::array<T,N>& xv,
@@ -81,20 +80,20 @@ void dddf(
     std::array<std::array<T,N>,N>& ddydxx_v,
     std::array<std::array<std::array<T,N>,N>,N>& dddydxxx
 ){
-    typedef typename dco::gt1v<T,N>::type DCO_T;
+    typedef typename dco::gt1s<T,N>::type DCO_T;
     std::array<DCO_T,N> x,dydx;
     std::array<std::array<DCO_T,N>,N> ddydxx;
     DCO_T y;
     for(size_t i=0;i<N;i++) {
         x[i]=xv[i];
-	dco::derivative(x[i])[i]=1;
         //was ist mit Zeile 62 ?
     }
     ddf(x,p,y,dydx,ddydxx);
     yv=dco::value(y);
     for (size_t i=0;i<N;i++) {
-        for (size_t j=0;j<N;j++){ ddydxx_v[i][j] = dco::value(ddydxx[i][j]);
-        for (size_t k=0;k<N;k++) dddydxxx[i][j][k]=dco::derivative(ddydxx[i][j])[k];}
+        for (size_t j=0;j<N;j++) ddydxx_v[i][j] = dco::value(ddydxx[i][j]) {
+            for (size_t k=0;k<N;k++) dddydxxx[i][j][k]=dco::derivative(ddydxx[i][j])[k];
+        }
     }
 }
 
@@ -136,34 +135,28 @@ void dSddf(
     for (size_t i=0;i<N;i++) dco::p1f::get(dydx[i],dSddf[i],0);
 }
 
-//Neu
+
 template<typename T, typename TP, size_t N, size_t NP>
-void Sdddf(
-    const std::array<T,N>& xv,
+void dSdddf(
+    const sdt::array< T,N>& xv,
     const std::array<TP,NP>& p,
     T& yv,
-    std::array<std::array<bool,N>,N>& sdddf
-) {
+    std::array<bool,N> &sdddf
+){
     using DCO_T=dco::p1f::type;
     std::array<DCO_T,N> x,dydx;
     std::array<std::array<DCO_T,N>,N> ddydxx;
     DCO_T y;
-    for (size_t i =0;i<N;i++) {
-        x[i]=xv[i];
+    for (size_t i=0;i<N;i++) {
+        x[i] = xv[i];
         dco::p1f::set(x[i],true,0);
     }
-    
     ddf(x,p,y,dydx,ddydxx);
     dco::p1f::get(y,yv);
-    for (size_t i=0;i<N;i++){
-	for(size_t j=0;j<N;j++){
-		dco::p1f::get(ddydxx[i][j],sdddf[i][j],0);
-		}
-	}
+    for (size_t i=0;i<N;i++) dco::p1f::get(ddydxx[i], sdddf[i],0);
+
 }
-
 /*
-
 template<typename T, typename TP, size_t N, size_t NP>
 void C_grad_f(
     const std::array<T,N>& xv,
@@ -189,83 +182,20 @@ void C_grad_f(
 
 */
 
-
-/*
-
-//input F:
-template<typename T, typename TP, size_t N, size_t NP> 
-void input_F(
-    
-    double*** dp3_seed
-){
-    std::array<T,N> cdf;
-    unsigned int** uip2_SparsityPattern = new unsigned int**;
-    std::array<std::array<T,N>,N> cdf_jacobian;
-    
-        for (int i = 0; i<yv.size(); i++) {
-            Cdf(xv,p,yv[i],cdf);
-            for(int j=0;j<cdf.size();j++) {
-                cdf_jacobian[i][j] = cdf[j];
-                uip2_SparsityPattern[i][j] = 1 - cdf_jacobian[i][j];
-            }
-        }
-    
-    //Matrix Komprimieren Comp: ColPack
-    std::string s_OrderingVariant = "LARGEST_FIRST";
-    std::string s_ColoringVariant = "DISTANCE ONE";
-    int i_rowCount = N;
-    int* ip1_SeedRowCount = new int*;
-    int* ip1_SeedColumnCount = new int*;
-
-
-    ColPack::GraphColoringInterface * GCI = new ColPack::GraphColoringInterface(SRC_MEM_ADOLC, uip2_SparsityPattern, i_rowCount);
-    GCI->Coloring(s_OrderingVariant,s_ColoringVariant);
-    (*dp3_seed) = GCI->GetSeedMatrix(ip1_SeedRowCount,ip1_SeedColumnCount);
-
-    //newtonverfahren aufrufen
-    //eventuell einfach extern in main/function-file    
-    //Newton (dp3_seed);
-    
-}
-
-template<typename T, typename TP, size_t N, size_t NP>
-void input_f(
-    const std::array<T,N>& xv,
-    const std::array<TP,NP>& p,
-    T& yv,
-){
-    std::array<T,N> dydx;
-    grad_f(xv,p,yv,dydx);
-    double*** dp3_seed = new double***;
-    input_F(xv,p,dydx);
-    //eingabe genau anschauen, was brauchen wir hier?
-}
-
-*/
-
-
-
 //Graphcoloring Flo
 template<typename T, typename TP, size_t N, size_t NP> 
-void input_F(
+void compression(
     const std::array<std::array<T,N>,N>& ddydxx,
     double*** dp3_seed
 	){
-		zuerst muss die Jacobi Matrix in ein Matrix Marketformat überführt werden
+		/*
+        zuerst muss die Jacobi Matrix in ein Matrix Marketformat überführt werden
 		Ne ich Lüge ich benutze direkt das Row Compressed format
-	/*	
-	std::array<T,N> cdf;
-    std::array<std::array<T,N>,N> cdf_jacobian;
-    
-        for (int i = 0; i<yv.size(); i++) {
-            Cdf(xv,p,yv[i],cdf);
-            for(int j=0;j<cdf.size();j++) {
-                cdf_jacobian[i][j] = cdf[j];
-            }
-        }
-	*/	
-	string Matrixmaket, s1;
+        */
+
+	std::string Matrixmaket, s1;
 	int treffer = 0;
+    
 	//for-schleife anpassen
 	//Matrix-Name ändern
     for (int i = 0; i<yv.size(); i++) {
@@ -298,8 +228,6 @@ void input_F(
 }
 
 
-
-
 int main() {
     using T=double; using TP=float;
     const size_t N=2, NP=1;
@@ -323,8 +251,6 @@ int main() {
     for (const auto& j:i)
     std::cout << j << std::endl;
 
-    //Kommentar fÃ¼r My: 
-    //Methode dddf prÃ¼fen, schauen ob der output richtig ist, wenn nicht fehler finden und anpassen
     std::cout <<"dddf:" << std::endl;
     std::array<std::array<std::array<T,N>,N>,N> dddydxxx;
     dddf(x,p,y,dydx,ddydxx,dddydxxx);
@@ -343,17 +269,8 @@ int main() {
     dSddf(x,p,y,dsddf);
     for (const auto& i:dsddf) std::cout << i << std::endl;
 
-    //Neu 
-    std::cout << "Sdddf:" << std::endl;
-    std::array<std::array<bool,N>,N> sdddf;
-    Sdddf(x,p,y,sdddf);
-    for (const auto& i:sdddf) 
-	for(const auto& j:i)
-		std::cout << j << std::endl;
-
-	
     std::cout << "Cdf:" << std::endl; 
     for (size_t i=0;i<N;i++)
-        std::cout << (sdf[i]!=dsddf[i]) << std::endl; 
+        std::cout << (dsddf[i]!=dsdddf[i]) << std::endl; 
     return 0;
-  }
+    
