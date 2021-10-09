@@ -5,6 +5,22 @@
 #include <typeinfo>
 #include <string>
 
+//Für Flo:
+//wir wollen zuerst die konstanten einträge in einer Matrix finden (dafür CDF,siehe briefing). 
+//Dann teilen wir die Matrix auf in Konstante und Variable Teilmatrix
+//Die beiden sind dann sparse, wir wollen die variable Matrix komprimieren. 
+//das CDF-Pattern sollte demnach identisch zum sparsity-pattern sein (hier können wir also den string schon schreiben)
+
+
+//Für My:
+//CDF ist im briefing nochmal genauer erklärt, da siehst du, was die Idee war. Julia ist gerade im Urlaub
+//Du kannst ja mal die Tiefenaddition ausprobieren (einfach jeden n-ten eintrag addieren, das ganze in zwei forschleifen wie folgt)
+//for i=0;i<N,i++
+//  for j=i;j<N*N;j+N
+//oder so denke ich
+
+//ich konnte nicht finden, wie man das sonst in dco machen soll. vielleicht fragt da sonst einfach mal die andere Gruppe.
+
 template<typename T, typename TP, size_t N, size_t NP> 
 void F(
     const std::array<T,N>& x, 
@@ -195,7 +211,7 @@ void compression(
 
 	std::string Matrixmaket, s1;
 	int treffer = 0;
-    
+
 	//for-schleife anpassen
 	//Matrix-Name ändern
     for (int i = 0; i<yv.size(); i++) {
