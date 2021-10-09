@@ -295,9 +295,7 @@ void input_F(
 
 	g->PartialDistanceTwoColoring("SMALLEST_LAST", "COLUMN_PARTIAL_DISTANCE_TWO");
 	(*dp3_Seed) = g->GetSeedMatrix(ip1_SeedRowCount, ip1_SeedColumnCount);
-
-*/
-
+}
 
 
 
