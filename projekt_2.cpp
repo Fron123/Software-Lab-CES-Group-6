@@ -99,7 +99,8 @@ void dddf(
     std::array<std::array<T,N>,N>& ddydxx_v,
     std::array<std::array<std::array<T,N>,N>,N>& dddydxxx
 ){
-    typedef typename dco::gt1v<T,N>::type DCO_T;   //typedef typename dco::gt1s<T,N>::type DCO_T;(Stand vorher da) -> Fehler?
+    typedef typename dco::gt1v<T,N>::type DCO_T;    //typedef typename dco::gt1s<T,N>::type DCO_T;(Stand vorher da) -> Fehler?
+                                                    //Kommentar Jan: gt1s ist eigentlich richtig und sollte auch funktionieren. Bei My hat das (dachte ich) fehlerlos kompiliert
     std::array<DCO_T,N> x,dydx;
     std::array<std::array<DCO_T,N>,N> ddydxx;
     DCO_T y;
@@ -174,6 +175,8 @@ void dSdddf(
     ddf(x,p,y,dydx,ddydxx);
     dco::p1f::get(y,yv);
     //for (size_t i=0;i<N;i++) dco::p1f::get(ddydxx[i], sdddf[i],0); //Hier ist auch noch etwas falsch an der Funktion ich weiß aber leider nicht was genau
+    
+    //Kommentar Jan: Auch hier dachte ich, dass das bei My schonmal kompiliert. Zumindest sah ihr output gut aus.
 
 }
 /*
