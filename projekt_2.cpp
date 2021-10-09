@@ -201,6 +201,41 @@ void C_grad_f(
 }
 */
 
+//Constant Awareness
+template<typename T, typename TP, size_t N, size_t NP>
+void constant_awareness(
+    const std::array<std::array<T,N>,N> ddf_c, 
+    const std::array<std::array<T,N>,N> ddf_v,
+    std::array<std::array<T,N>,N>& ddydxx,
+    std::array<bool,N> &dsdddf,
+    std::array<bool,N> &dsddf
+){
+    std::array<std::array<T,N>,N> cdf;
+
+    //std::cout << "Cdf:" << std::endl;
+    for (size_t i=0;i<dsddf.size();i++) cdf[i] = (dsddf[i]!= dsdddf[i]);
+    //    std::cout << (dsddf[i]!=dsdddf[i]) << std::endl;
+
+    //einteilung in die teil-matrizen
+    //Theoretisch kann man sich zeile 216 sparen, wenn man die dsddf != dsdddf als bedingung in if packt. 
+    //zum "debugging" ist die ausgabe von cdf aber eventuell sinnvoll
+
+    for (size_t j=0;j<dsddf.size();j++) {
+        if cdf[i] = 0 {
+            ddf_c[i] = ddydxx[i];
+        }
+        else {
+            ddf_v[i] = ddydxx[i];
+        }
+    }
+
+
+}
+
+//ddf_v soll dann an compression übergeben werden
+//ddf_c eventuell auch einmal, aber das bleibt ja eh konstant. 
+
+
 //Graphcoloring Flo
 template<typename T, typename TP, size_t N, size_t NP>
 void compression(
