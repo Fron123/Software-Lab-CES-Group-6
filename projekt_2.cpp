@@ -107,7 +107,7 @@ void dddf(
     DCO_T y;
     for(size_t i=0;i<N;i++) {
         x[i]=xv[i];
-	dco::derivative(x[i])[i]=1; 
+        dco::derivative(x[i])[i]=1;
         //was ist mit Zeile 62 ?
     }
     ddf(x,p,y,dydx,ddydxx);
@@ -116,7 +116,7 @@ void dddf(
         for (size_t j=0;j<N;j++){
                         ddydxx_v[i][j] = dco::value(ddydxx[i][j]);
             for (size_t k=0;k<N;k++) dddydxxx[i][j][k]=dco::derivative(ddydxx[i][j])[k];  // Hier wurden die Klammern flasch gesetzt ich gehe mal davon aus das die 3 Schleife mit der zuweosung gleichzeitig laufen soll oder ?
-	    //Kommentar My: also ich habe es so getestet wie es ist mit einigen Testfunktionen und so kam das richtige raus, wenn ich mich nicht irre
+            //Kommentar My: also ich habe es so getestet wie es ist mit einigen Testfunktionen und so kam das richtige raus, wenn ich mich nicht irre
         }
     }
 }
@@ -139,7 +139,7 @@ void dddf_a(
     DCO_T y;
     for(size_t i=0;i<N;i++) {
         x[i]=xv[i];
-	dco::derivative(x[i])[i]=1;
+        dco::derivative(x[i])[i]=1;
     }
     ddf(x,p,y,dydx,ddydxx);
     yv=dco::value(y);
@@ -147,16 +147,17 @@ void dddf_a(
         for (size_t j=0;j<N;j++){ ddydxx_v[i][j] = dco::value(ddydxx[i][j]);
         for (size_t k=0;k<N;k++) dddydxxx[i][j][k]=dco::derivative(ddydxx[i][j])[k];}
     }
-    
+
     for (int k=0; k<N; k++){
-	for(int j=0; j<N; j++){
-			T v=0;
-		for(int i=0; i<N; i++){
-			v += dddydxxx[i][j][k];
-			dddydxxx_a[j][k] = v;
-			
-			
-	}}
+        for(int j=0; j<N; j++){
+                        T v=0;
+                for(int i=0; i<N; i++){
+                        v += dddydxxx[i][j][k];
+                        dddydxxx_a[j][k] = v;
+                }
+
+        }
+    }
 }
 
 
@@ -220,7 +221,7 @@ void dSdddf(
     //for(size_t j=0;j<N;j++)
     //  dco::p1f::get(ddydxx[i][j],sdddf[i][j],0);
     //Kommentar Jan: Auch hier dachte ich, dass das bei My schonmal kompiliert. Zumindest sah ihr output gut aus.
-    //Kommentar My: habe das mit dem Verglichen, was ich hatte und es sind Zeilen irgendwie verloren gegangen ich habe sie mal hinzugefügt, das Problem ist hier kommen manchmal die richtigen und manchmal nicht richtige Werte raus und die Frage ist, wie hier dddf mit der Tiefensuche eingebuden werden kann 
+    //Kommentar My: habe das mit dem Verglichen, was ich hatte und es sind Zeilen irgendwie verloren gegangen ich habe sie mal hinzugefügt, das Problem ist hier kommen manchmal die richtigen und manchmal nicht richtige Werte raus und die Frage ist, wie hier dddf mit der Tiefensuche eingebuden werden kann
 }
 /*
 template<typename T, typename TP, size_t N, size_t NP>
@@ -238,7 +239,6 @@ void C_grad_f(
     S_grad_f(xv,p,yv,sdf);
     std::array<bool,N> dsddf;
     S_jacobi_F(xv,p,yv,dsddf);
-
     for(int i=0;i<N,i++)
     cdf[i] = (sdf[i]!=dsddf[i]);
 }
@@ -247,7 +247,7 @@ void C_grad_f(
 //Constant Awareness
 template<typename T, typename TP, size_t N, size_t NP>
 void constant_awareness(
-    const std::array<std::array<T,N>,N> ddf_c, 
+    const std::array<std::array<T,N>,N> ddf_c,
     const std::array<std::array<T,N>,N> ddf_v,
     std::array<std::array<T,N>,N>& ddydxx,
     std::array<bool,N> &dsdddf,
@@ -260,11 +260,13 @@ void constant_awareness(
     //    std::cout << (dsddf[i]!=dsdddf[i]) << std::endl;
 
     //einteilung in die teil-matrizen
-    //Theoretisch kann man sich zeile 216 sparen, wenn man die dsddf != dsdddf als bedingung in if packt. 
+    //Theoretisch kann man sich zeile 216 sparen, wenn man die dsddf != dsdddf als bedingung in if packt.
     //zum "debugging" ist die ausgabe von cdf aber eventuell sinnvoll
 
+    // Flo :Hier in die Schleife muss ein j statt dem i hin oder irre ich mich ?
+
     for (size_t j=0;j<dsddf.size();j++) {
-        if cdf[i] = 0 {
+        if (cdf[i] = 0) {
             ddf_c[i] = ddydxx[i];
         }
         else {
@@ -276,7 +278,7 @@ void constant_awareness(
 }
 
 //ddf_v soll dann an compression übergeben werden
-//ddf_c eventuell auch einmal, aber das bleibt ja eh konstant. 
+//ddf_c eventuell auch einmal, aber das bleibt ja eh konstant.
 
 
 //Graphcoloring Flo
@@ -360,11 +362,11 @@ int main() {
 
     //Ausgabe Matrix mit Tiefenaddition
     std::cout<<"dddf_a:" << std::endl;
-    std::array<std::array<T,N>,N> dddydxxx_a;	
+    std::array<std::array<T,N>,N> dddydxxx_a;
     dddf_a(x,p,y,dydx,ddydxx,dddydxxx_a);
     for(const auto& i:dddydxxx_a)
-	for(const auto j:i)
-		std::cout<< j<< std::endl;
+        for(const auto j:i)
+                std::cout<< j<< std::endl;
 
     std::cout << "Sdf:" << std::endl;
     std::array<bool,N> sdf;
@@ -376,15 +378,19 @@ int main() {
     dSddf(x,p,y,dsddf);
     for (const auto& i:dsddf) std::cout << i << std::endl;
 
-        //Schaut mal drüber ob das richtig ist aber dsdddf muss ja noch berechnet werden
+    //Frage von Flo: muss hier dsdddf als Matrix oder als Vektor übergeben werden
+    //Im aufruf der Funktion hier vird eine Matrix übergeben aber die Funktion benutzt nur einen Vektor
+
+
+    //Schaut mal drüber ob das richtig ist aber dsdddf muss ja noch berechnet werden
     //    std::array<bool,N> dsdddf;
-     //   dSdddf(x,p,y,dsdddf);
+    //   dSdddf(x,p,y,dsdddf);
     std::cout << "dSdddf:" << std::endl;
     std::array<std::array<bool,N>,N> dsdddf;
     dSdddf(x,p,y,dsdddf);
-    for (const auto& i:dsdddf) 
-	for(const auto& j:i)
-		std::cout << j << std::endl;
+    for (const auto& i:dsdddf)
+        for(const auto& j:i)
+                std::cout << j << std::endl;
 
 
 
@@ -395,7 +401,7 @@ int main() {
 
 
         double*** dp3_Seed;
-        compression(ddydxx,dp3_Seed);
+      //  compression(ddydxx,dp3_Seed);
 
 
 }
