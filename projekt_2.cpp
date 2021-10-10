@@ -116,12 +116,13 @@ void dddf(
         for (size_t j=0;j<N;j++){
                         ddydxx_v[i][j] = dco::value(ddydxx[i][j]);
             for (size_t k=0;k<N;k++) dddydxxx[i][j][k]=dco::derivative(ddydxx[i][j])[k];  // Hier wurden die Klammern flasch gesetzt ich gehe mal davon aus das die 3 Schleife mit der zuweosung gleichzeitig laufen soll oder ?
-	    //Kommentar My: also ich habe es so getestet wie es ist mit einigen Testfunktionen und so kam das richtige raus
+	    //Kommentar My: also ich habe es so getestet wie es ist mit einigen Testfunktionen und so kam das richtige raus, wenn ich mich nicht irre
         }
     }
 }
 
 //dddf mit Tiefenaddition
+//output bei getesteten Funktionen sollte passen, aber wie kann ich damit weiterarbeiten?
 template<typename T, typename TP, size_t N, size_t NP>
 void dddf_a(
     const std::array<T,N>& xv,
