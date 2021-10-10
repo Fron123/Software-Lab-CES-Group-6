@@ -358,6 +358,14 @@ int main() {
     for (const auto& k:j)
     std::cout << k << std::endl;
 
+    //Ausgabe Matrix mit Tiefenaddition
+    std::cout<<"dddf_a:" << std::endl;
+    std::array<std::array<T,N>,N> dddydxxx_a;	
+    dddf_a(x,p,y,dydx,ddydxx,dddydxxx_a);
+    for(const auto& i:dddydxxx_a)
+	for(const auto j:i)
+		std::cout<< j<< std::endl;
+
     std::cout << "Sdf:" << std::endl;
     std::array<bool,N> sdf;
     Sdf(x,p,y,sdf);
@@ -369,8 +377,14 @@ int main() {
     for (const auto& i:dsddf) std::cout << i << std::endl;
 
         //Schaut mal drüber ob das richtig ist aber dsdddf muss ja noch berechnet werden
-        std::array<bool,N> dsdddf;
-        dSdddf(x,p,y,dsdddf);
+    //    std::array<bool,N> dsdddf;
+     //   dSdddf(x,p,y,dsdddf);
+    std::cout << "dSdddf:" << std::endl;
+    std::array<std::array<bool,N>,N> dsdddf;
+    dSdddf(x,p,y,dsdddf);
+    for (const auto& i:dsdddf) 
+	for(const auto& j:i)
+		std::cout << j << std::endl;
 
 
 
