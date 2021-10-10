@@ -107,6 +107,7 @@ void dddf(
     DCO_T y;
     for(size_t i=0;i<N;i++) {
         x[i]=xv[i];
+	dco::derivative(x[i])[i]=1; 
         //was ist mit Zeile 62 ?
     }
     ddf(x,p,y,dydx,ddydxx);
@@ -115,6 +116,7 @@ void dddf(
         for (size_t j=0;j<N;j++){
                         ddydxx_v[i][j] = dco::value(ddydxx[i][j]);
             for (size_t k=0;k<N;k++) dddydxxx[i][j][k]=dco::derivative(ddydxx[i][j])[k];  // Hier wurden die Klammern flasch gesetzt ich gehe mal davon aus das die 3 Schleife mit der zuweosung gleichzeitig laufen soll oder ?
+	    //Kommentar My: also ich habe es so getestet wie es ist mit einigen Testfunktionen und so kam das richtige raus
         }
     }
 }
