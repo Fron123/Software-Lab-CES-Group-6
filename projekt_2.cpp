@@ -205,7 +205,7 @@ void dSdddf(
     const std::array< T,N>& xv,
     const std::array<TP,NP>& p,
     T& yv,
-    std::array<bool,N> &sdddf
+    std::array<std::array<bool,N>,N> &sdddf
 ){
     using DCO_T=dco::p1f::type;
     std::array<DCO_T,N> x,dydx;
