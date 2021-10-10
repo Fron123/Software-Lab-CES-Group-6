@@ -198,7 +198,7 @@ void dSddf(
     dco::p1f::get(y,yv);
     for (size_t i=0;i<N;i++) dco::p1f::get(dydx[i],dSddf[i],0);
 }
-
+/*
 //wie kann ich hier die Matrix dddf mit Tiefenaddition reinbringen?
 template<typename T, typename TP, size_t N, size_t NP>
 void dSdddf(
@@ -223,6 +223,42 @@ void dSdddf(
     //Kommentar Jan: Auch hier dachte ich, dass das bei My schonmal kompiliert. Zumindest sah ihr output gut aus.
     //Kommentar My: habe das mit dem Verglichen, was ich hatte und es sind Zeilen irgendwie verloren gegangen ich habe sie mal hinzugefügt, das Problem ist hier kommen manchmal die richtigen und manchmal nicht richtige Werte raus und die Frage ist, wie hier dddf mit der Tiefensuche eingebuden werden kann
 }
+*/
+
+//dSdddf mit Tiefenaddition
+template<typename T, typename TP, size_t N, size_t NP>
+void dSdddf_a(
+    const std::array<T,N>& xv,
+    const std::array<TP,NP>& p,
+    T& yv,
+    std::array<bool,N> &dSdddf
+) {
+    using DCO_T=dco::p1f::type;
+    std::array<DCO_T,N> x,dydx;
+    std::array<std::array<T,N>,N>& ddydxx;
+    std::array<std::array<T,N>,N>& dddydxxx;
+
+    DCO_T y;
+    for (size_t i =0;i<N;i++) {
+        x[i]=xv[i];
+        dco::p1f::set(x[i],true,0);
+    }
+    dddf_a(x,p,y,dydx,ddydxx,dddydxxx);
+    dco::p1f::get(y,yv);
+    for(size_t i=0; i<N;i++){
+        T temp=0;
+	for(size_t j=0; j<N; j++){
+		temp += dddydxxx[i][j];
+	}
+	if (temp = 0)
+		dSdddf[i] = 0;
+	elso if (temp != 0) 
+		dSdddf[i] = 1;
+}
+    
+}
+
+
 /*
 template<typename T, typename TP, size_t N, size_t NP>
 void C_grad_f(
@@ -385,6 +421,7 @@ int main() {
     //Schaut mal drüber ob das richtig ist aber dsdddf muss ja noch berechnet werden
     //    std::array<bool,N> dsdddf;
     //   dSdddf(x,p,y,dsdddf);
+    /*
     std::cout << "dSdddf:" << std::endl;
     std::array<std::array<bool,N>,N> dsdddf;
     dSdddf(x,p,y,dsdddf);
@@ -392,11 +429,31 @@ int main() {
         for(const auto& j:i)
                 std::cout << j << std::endl;
 
+*/
 
-
+/*
     std::cout << "Cdf:" << std::endl;
     for (size_t i=0;i<N;i++)
-        std::cout << "(dsddf[i]!=dsdddf[i])" << std::endl;
+        std::cout << "(dsddf[i]!=dsdddf[i])" << std::endl; */
+
+    //Mit Tiefenaddition
+    std::cout << "dSdddf_a:" << std::endl;
+    std::array<bool,N> dsdddf_a;
+    dSddf_a(x,p,y,dsdddf_a);
+    for (const auto& i:dsdddf_a) std::cout << i << std::endl;
+
+	
+    std::cout << "Cdf:"<< std::endl;
+    for (size_t i=0; i<N; i++)
+	std::cout << (sdf[i] != dsddf[i]) << std::endl;
+
+    
+    std::cout << "dCddf:" << std::endl; 
+    for (size_t i=0;i<N;i++)
+        std::cout << (dsddf[i]!= dsdddf_a[i]) << std::endl; 
+
+        
+        
     return 0;
 
 
