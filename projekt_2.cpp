@@ -266,11 +266,11 @@ void constant_awareness(
     // Flo :Hier in die Schleife muss ein j statt dem i hin oder irre ich mich ?
 
     for (size_t j=0;j<dsddf.size();j++) {
-        if (cdf[i] = 0) {
-            ddf_c[i] = ddydxx[i];
+        if (cdf[j] = 0) {
+            ddf_c[j] = ddydxx[j];
         }
         else {
-            ddf_v[i] = ddydxx[i];
+            ddf_v[j] = ddydxx[j];
         }
     }
 
@@ -283,9 +283,9 @@ void constant_awareness(
 
 //Graphcoloring Flo
 template<typename T, typename TP, size_t N, size_t NP>
-void compression(
-    const std::array<std::array<T,N>,N>& ddydxx,
-    double*** &dp3_Seed
+void Col_Compression(
+    std::array<std::array<T,N>,N>& ddydxx,
+    double***& dp3_Seed
         ){
                 /*
         zuerst muss die Jacobi Matrix in ein Matrix Marketformat überführt werden
@@ -396,12 +396,12 @@ int main() {
 
     std::cout << "Cdf:" << std::endl;
     for (size_t i=0;i<N;i++)
-        std::cout << (dsddf[i]!=dsdddf[i]) << std::endl;
+        std::cout << "(dsddf[i]!=dsdddf[i])" << std::endl;
     return 0;
 
 
-        double*** dp3_Seed;
-      //  compression(ddydxx,dp3_Seed);
+        double*** dp3_Seed = new double**;
+        Col_Compression(ddydxx,dp3_Seed);
 
 
 }
