@@ -235,8 +235,8 @@ void dSdddf_a(
 ) {
     using DCO_T=dco::p1f::type;
     std::array<DCO_T,N> x,dydx;
-    std::array<std::array<T,N>,N>& ddydxx;
-    std::array<std::array<T,N>,N>& dddydxxx;
+    std::array<std::array<DCO_T,N>,N> ddydxx;
+    std::array<std::array<DCO_T,N>,N> dddydxxx;
 
     DCO_T y;
     for (size_t i =0;i<N;i++) {
@@ -246,17 +246,20 @@ void dSdddf_a(
     dddf_a(x,p,y,dydx,ddydxx,dddydxxx);
     dco::p1f::get(y,yv);
     for(size_t i=0; i<N;i++){
-        T temp=0;
+		DCO_T temp = 0;
 	for(size_t j=0; j<N; j++){
 		temp += dddydxxx[i][j];
 	}
-	if (temp = 0)
+	if (temp == 0)
 		dSdddf[i] = 0;
-	elso if (temp != 0) 
+	else if (temp != 0) 
 		dSdddf[i] = 1;
 }
     
 }
+
+   
+
 
 
 /*
