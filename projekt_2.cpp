@@ -101,6 +101,7 @@ void dddf(
 ){
     typedef typename dco::gt1v<T,N>::type DCO_T;    //typedef typename dco::gt1s<T,N>::type DCO_T;(Stand vorher da) -> Fehler?
                                                     //Kommentar Jan: gt1s ist eigentlich richtig und sollte auch funktionieren. Bei My hat das (dachte ich) fehlerlos kompiliert
+                                                    //Kommentar My: ich weiß nicht warum hier gt1s stand, weil bei mir steht gt1v
     std::array<DCO_T,N> x,dydx;
     std::array<std::array<DCO_T,N>,N> ddydxx;
     DCO_T y;
@@ -117,6 +118,44 @@ void dddf(
         }
     }
 }
+
+//dddf mit Tiefenaddition
+template<typename T, typename TP, size_t N, size_t NP>
+void dddf_a(
+    const std::array<T,N>& xv,
+    const std::array<TP,NP>& p,
+    T& yv,
+    std::array<T,N>& dydx_v,
+    std::array<std::array<T,N>,N>& ddydxx_v,
+    std::array<std::array<T,N>,N>& dddydxxx_a
+){
+    std::array<std::array<std::array<T,N>,N>,N> dddydxxx;
+    typedef typename dco::gt1v<T,N>::type DCO_T;
+    std::array<DCO_T,N> x,dydx;
+    std::array<std::array<DCO_T,N>,N> ddydxx;
+    DCO_T y;
+    for(size_t i=0;i<N;i++) {
+        x[i]=xv[i];
+	dco::derivative(x[i])[i]=1;
+    }
+    ddf(x,p,y,dydx,ddydxx);
+    yv=dco::value(y);
+    for (size_t i=0;i<N;i++) {
+        for (size_t j=0;j<N;j++){ ddydxx_v[i][j] = dco::value(ddydxx[i][j]);
+        for (size_t k=0;k<N;k++) dddydxxx[i][j][k]=dco::derivative(ddydxx[i][j])[k];}
+    }
+    
+    for (int k=0; k<N; k++){
+	for(int j=0; j<N; j++){
+			T v=0;
+		for(int i=0; i<N; i++){
+			v += dddydxxx[i][j][k];
+			dddydxxx_a[j][k] = v;
+			
+			
+	}}
+}
+
 
 template<typename T, typename TP, size_t N, size_t NP>
 void Sdf(
@@ -156,7 +195,7 @@ void dSddf(
     for (size_t i=0;i<N;i++) dco::p1f::get(dydx[i],dSddf[i],0);
 }
 
-
+//wie kann ich hier die Matrix dddf mit Tiefenaddition reinbringen?
 template<typename T, typename TP, size_t N, size_t NP>
 void dSdddf(
     const std::array< T,N>& xv,
@@ -174,10 +213,11 @@ void dSdddf(
     }
     ddf(x,p,y,dydx,ddydxx);
     dco::p1f::get(y,yv);
-    //for (size_t i=0;i<N;i++) dco::p1f::get(ddydxx[i], sdddf[i],0); //Hier ist auch noch etwas falsch an der Funktion ich weiß aber leider nicht was genau
-    
+    //for (size_t i=0;i<N;i++) //Hier ist auch noch etwas falsch an der Funktion ich weiß aber leider nicht was genau
+    //for(size_t j=0;j<N;j++)
+    //  dco::p1f::get(ddydxx[i][j],sdddf[i][j],0);
     //Kommentar Jan: Auch hier dachte ich, dass das bei My schonmal kompiliert. Zumindest sah ihr output gut aus.
-
+    //Kommentar My: habe das mit dem Verglichen, was ich hatte und es sind Zeilen irgendwie verloren gegangen ich habe sie mal hinzugefügt, das Problem ist hier kommen manchmal die richtigen und manchmal nicht richtige Werte raus und die Frage ist, wie hier dddf mit der Tiefensuche eingebuden werden kann 
 }
 /*
 template<typename T, typename TP, size_t N, size_t NP>
