@@ -29,7 +29,7 @@ using namespace ColPack;
 #define TOP_DIR "."
 #endif
 
-string baseDir = TOP_DIR;
+string baseDir=TOP_DIR;
 
 template<typename T, typename TP, size_t N, size_t NP>
 void F(
@@ -500,14 +500,15 @@ datei.close();
 
 
 
-std::cout <<  Matrixmaket << std::endl;
 
-string s_InputFile;
-s_InputFile = baseDir;
-s_InputFile += DIR_SEPARATOR; "MatrixMarket.mtx";
+
+string s_InputFile; //path of the input file. PICK A SYMMETRIC MATRIX!!!
+s_InputFile = "/home/dc350267/Dokumente/SP_CES/Code/NONLINEAR_SYSTEM/libnls_apps/NamenloserOrdner";
+s_InputFile += "/MatrixMarket.mtx";
+
 
 std::ifstream input(s_InputFile);
-
+/*
 if (!input)
 {
   std::cerr << "Datei beim Oeffnen der Datei " << s_InputFile << "\n";
@@ -518,26 +519,46 @@ std::string line;
 
 while (std::getline(input, line))
 {
-   std::cout << line << '\n';
+   std::cout << s_InputFile << '\n';
 }
-
-//ConvertMatrixMarketFormat2RowCompressedFormat(s_InputFile, uip3_SparsityPattern, dp3_Value,rowCount, columnCount);
-/*
-std::cout<<"(*uip3_SparsityPattern)"<<endl;
-displayCompressedRowMatrix((*uip3_SparsityPattern),rowCount);
-std::cout<<"(*dp3_Value)"<<endl;
-displayCompressedRowMatrix((*dp3_Value),rowCount);
-std::cout<<"Finish ConvertMatrixMarketFormatToRowCompressedFormat()"<<endl;
-Pause();
-
-int *ip1_SeedRowCount = new int;
-int *ip1_SeedColumnCount = new int;
-int *ip1_ColorCount = new int;
-BipartiteGraphPartialColoringInterface *g = new BipartiteGraphPartialColoringInterface(SRC_MEM_ADOLC, *uip3_SparsityPattern, rowCount, columnCount);
-
-g->PartialDistanceTwoColoring("SMALLEST_LAST", "COLUMN_PARTIAL_DISTANCE_TWO");
-(*dp3_Seed) = g->GetSeedMatrix(ip1_SeedRowCount, ip1_SeedColumnCount);
 */
+
+std::cout <<  s_InputFile << std::endl;
+GraphColoringInterface * g = new GraphColoringInterface(SRC_FILE, s_InputFile.c_str(),"AUTO_DETECTED");
+
+//Color the bipartite graph with the specified ordering
+g->Coloring("LARGEST_FIRST", "DISTANCE_TWO");
+
+/*Done with coloring. Below are possible things that you may
+want to do after coloring:
+//*/
+
+/* 1. Check DISTANCE_TWO coloring result
+cout<<"Check DISTANCE_TWO coloring result"<<endl;
+g->CheckDistanceTwoColoring();
+//*/
+
+//* 2. Print coloring results
+g->PrintVertexColoringMetrics();
+//*/
+
+//* 3. Get the list of colorID of vertices
+vector<int> vi_VertexColors;
+g->GetVertexColors(vi_VertexColors);
+
+//Display vector of VertexColors
+printf("vector of VertexColors (size %d) \n", (int)vi_VertexColors.size());
+displayVector(&vi_VertexColors[0], vi_VertexColors.size(), 1);
+//*/
+
+// 4. Get seed matrix
+int i_SeedRowCount = 0;
+int i_SeedColumnCount = 0;
+double** Seed = g->GetSeedMatrix(&i_SeedRowCount, &i_SeedColumnCount);
+
+//Display Seed
+printf("Seed matrix %d x %d \n", i_SeedRowCount, i_SeedColumnCount);
+displayMatrix(Seed, i_SeedRowCount, i_SeedColumnCount, 1);
 
 
     return 0;
