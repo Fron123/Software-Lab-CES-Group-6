@@ -7,6 +7,9 @@
 #include <string>
 #include <fstream>
 
+
+
+
 using namespace ColPack;
 
 
@@ -24,7 +27,7 @@ void f(
     T& y
 ){
     using namespace std;
-    y=p[0]*x[0]+sin(x[1])*x[2];
+    y=p[0]*x[0]*x[0] + sin(x[1]);
 }
 
 //first derivative (gradient)
@@ -86,18 +89,20 @@ void dddf(
     std::array<std::array<T,N>,N>& ddydxx_v,
     std::array<std::array<std::array<T,N>,N>,N>& dddydxxx
 ){
-    typedef typename dco::gt1s<T,N>::type DCO_T;
+    typedef typename dco::gt1v<T,N>::type DCO_T;
     std::array<DCO_T,N> x,dydx;
     std::array<std::array<DCO_T,N>,N> ddydxx;
     DCO_T y;
     for(size_t i=0;i<N;i++) {
         x[i]=xv[i];
-        //was ist mit Zeile 62 ?
+        dco::derivative(x[i])[i]=1;
     }
     ddf(x,p,y,dydx,ddydxx);
     yv=dco::value(y);
     for (size_t i=0;i<N;i++) {
-        for (size_t j=0;j<N;j++) ddydxx_v[i][j] = dco::value(ddydxx[i][j]) {
+        dydx_v[i]=dco::value(dydx[i]);
+        for (size_t j=0;j<N;j++){
+            ddydxx_v[i][j] = dco::value(ddydxx[i][j]);
             for (size_t k=0;k<N;k++) dddydxxx[i][j][k]=dco::derivative(ddydxx[i][j])[k];
         }
     }
@@ -129,40 +134,48 @@ void dSddf(
     const std::array<T,N>& xv,
     const std::array<TP,NP>& p,
     T& yv,
-    std::array<bool,N> &dSddf
+    std::array<std::array<bool,N>,N> &dSddf
 ) {
     using DCO_T=dco::p1f::type;
     std::array<DCO_T,N> x,dydx;
+    //std::array<std::array<DCO_T,N>,N> ddydxx;
     DCO_T y;
     for (size_t i =0;i<N;i++) {
         x[i]=xv[i];
-        dco::p1f::set(x[i],true,0);
+        dco::p1f::set(x[i],true,i);
     }
     df(x,p,y,dydx);
     dco::p1f::get(y,yv);
-    for (size_t i=0;i<N;i++) dco::p1f::get(dydx[i],dSddf[i],0);
+    for (size_t i=0; i<N;i++){
+    for (size_t j=0;j<N;j++) dco::p1f::get(dydx[i],dSddf[i][j],j);
+    }
 }
 
 //sparsity f'''
 template<typename T, typename TP, size_t N, size_t NP>
 void dSdddf(
-    const sdt::array< T,N>& xv,
+    const std::array< T,N>& xv,
     const std::array<TP,NP>& p,
     T& yv,
-    std::array<bool,N> &sdddf
+    std::array<std::array<std::array<bool,N>,N>,N> &dSdddf
 ){
     using DCO_T=dco::p1f::type;
     std::array<DCO_T,N> x,dydx;
-    std::array<std::array<DCO_T,N>,N> ddydxx;
+    std::array<std::array<DCO_T,N>,N> ddydxx; //,dddydxxx;
     DCO_T y;
     for (size_t i=0;i<N;i++) {
         x[i] = xv[i];
-        dco::p1f::set(x[i],true,0);
+        dco::p1f::set(x[i],true,i);
     }
     ddf(x,p,y,dydx,ddydxx);
     dco::p1f::get(y,yv);
-    for (size_t i=0;i<N;i++) dco::p1f::get(ddydxx[i], sdddf[i],0);
 
+    for (size_t i=0;i<N;i++){
+    for (size_t j=0;j<N;j++) {
+    for (size_t k=0;k<N;k++)
+        dco::p1f::get(ddydxx[i][j],dSdddf[i][j][k],k);
+    }
+    }
 }
 
 //Constant Awareness
@@ -200,8 +213,8 @@ void constant_awareness(
 
 int main() {
     using T=double; using TP=float;
-    const size_t N=3, NP=1;
-    std::array<T,N> x={1,1,1};
+    const size_t N=2, NP=1;
+    std::array<T,N> x={1,1};
     std::array<TP,NP> p={1.1};
     T y;
 
@@ -235,24 +248,29 @@ int main() {
     for (const auto& i:sdf) std::cout << i << std::endl;
 
     std::cout << "dSddf:" << std::endl;
-    std::array<bool,N> dsddf;
+    std::array<std::array<bool,N>,N> dsddf;
     dSddf(x,p,y,dsddf);
-    for (const auto& i:dsddf) std::cout << i << std::endl;
+    for (const auto& i:dsddf)
+        for(const auto& j:i)
+        std::cout << j << std::endl;
 
     std::cout << "dSdddf:" << std::endl;
-    std::array<bool,N> dsdddf;
+    std::array<std::array<std::array<bool,N>,N>,N> dsdddf;
     dSdddf(x,p,y,dsdddf);
-    for (const auto& i:dsdddf) std::cout << i << std::endl;
-
+    for (const auto& i:dsdddf)
+        for(const auto& j:i)
+            for(const auto& k:j)
+    std::cout << k << std::endl;
+/*
     std::cout << "Cdf:"<< std::endl;
     for (size_t i=0; i<N; i++)
         std::cout << (sdf[i] != dsddf[i]) << std::endl;
 
     std::cout << "dCddf:" << std::endl;
     for (size_t i=0;i<N;i++)
-        std::cout << (dsddf[i]!= dsdddf_a[i]) << std::endl;
+        std::cout << (dsddf[i]!= dsdddf[i]) << std::endl;
+*/
 
-    
     // Mal in die main Graph Coloring
     int rowCount, columnCount;
     std::string Matrixmaket, s1, s2, s3, s4, s5, s6, s7;
