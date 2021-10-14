@@ -27,7 +27,7 @@ void f(
     T& y
 ){
     using namespace std;
-    y=p[0]*x[0]*x[0] + sin(x[1]);
+    y=p[0]*x[0]*x[0] + exp(x[1]);
 }
 
 //first derivative (gradient)
@@ -157,7 +157,7 @@ void dSdddf(
     const std::array< T,N>& xv,
     const std::array<TP,NP>& p,
     T& yv,
-    std::array<std::array<bool,N>,N> &dSdddf
+    std::array<std::array<bool,N>,N> &dSdddf,
     std::array<std::array<std::array<T,N>,N>,N>& dddydxxx
 ){
     /*
@@ -179,11 +179,11 @@ void dSdddf(
     }
     }
     */
-    T sum = new T;
+    T sum ;
     for (size_t i=0;i<N;i++){
         for(size_t j=0;j<N;j++){
             sum = 0;
-            for(size_t k=0:k<N;k++){
+            for(size_t k=0;k<N;k++){
                 sum = dddydxxx[i][j][k];
             }
             dSdddf[i][j] = sum;
@@ -227,7 +227,7 @@ void constant_awareness(
 int main() {
     using T=double; using TP=float;
     const size_t N=2, NP=1;
-    std::array<T,N> x={1,1};
+    std::array<T,N> x={0.5,0.5};
     std::array<TP,NP> p={1.1};
     T y;
 
@@ -268,12 +268,11 @@ int main() {
         std::cout << j << std::endl;
 
     std::cout << "dSdddf:" << std::endl;
-    std::array<std::array<std::array<bool,N>,N>,N> dsdddf;
-    dSdddf(x,p,y,dsdddf);
+    std::array<std::array<bool,N>,N> dsdddf;
+    dSdddf(x,p,y,dsdddf,dddydxxx);
     for (const auto& i:dsdddf)
         for(const auto& j:i)
-            for(const auto& k:j)
-    std::cout << k << std::endl;
+    std::cout << j << std::endl;
 /*
     std::cout << "Cdf:"<< std::endl;
     for (size_t i=0; i<N; i++)
