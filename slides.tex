@@ -1,0 +1,144 @@
+\documentclass[ucs,10pt]{beamer}
+ 
+\include{stce-beamer-template}  
+
+\begin{document}
+\title[{\tt info@stce.rwth-aachen.de}]{\textcolor{rwth-blue}{Software Lab Computational Engineering Science} \vspace{.2cm} \\ {\small Talk Template}}
+\author[Talk (Template)]{Uwe Naumann} 
+\institute[Software Lab CES]{
+{Informatik 12: Software and Tools for Computational Engineering (STCE)} \\ RWTH Aachen University \vspace{.5cm}
+}
+\date[]{}
+
+\begin{frame}[plain]
+\titlepage
+\end{frame}
+
+\begin{frame}
+	\frametitle{Contents}
+\tableofcontents
+\end{frame}
+
+\section{Preface}
+
+\begin{frame}
+\frametitle{Preface \\
+	\small \color{rwth-blue} Subtitle}
+	\begin{itemize}
+	\item Software and Tools for Computational Engineering 
+	\item develope software with neccessities
+	\item Numerical Methods for solving systems of nonlinear equations
+	\item supervised by Prof. Uwe Naumann and Jens Deussen
+	\end{itemize}
+	Beispieltext für Vortragenden:
+	The matter of our project and this presentation was given to us by the institute of software and tools for computational engineering as part of the "softwareentwicklungspraktikums". The Goal was to learn and train the neccessary steps to develope software. In the course of this project we had to deepen our knowledge on numerical mathmatics and espacially methods on solving minimization problem and systems of nonlinear equations.
+	We've been supervised by Prof. Naumann und Jens Deussen. 
+	
+\end{frame}
+
+\section{Analysis}
+
+\subsection{User Requirements}
+
+\begin{frame}
+\frametitle{Analysis \\
+	\small \color{rwth-blue} User Requirements}
+	Use Case Diagramm
+	+ zusätzliche informationen
+\end{frame}
+
+\subsection{System Requirements}
+
+\begin{frame}
+\frametitle{Analysis \\
+	\small \color{rwth-blue} System Requirements}
+	functional and nonfunctional system requirements (eventuell zählt 3rd party software zu einem davon, dann entsprechend auslassen)
+	Hier ist es vermutlich sinnvoll mal die infos aus den alten slides und naumanns slides zusammen anzuschauen und zu entscheiden was wir nehmen
+\end{frame}
+
+\section{Design}
+
+\subsection{System Requirements}
+
+\begin{frame}
+\frametitle{Design \\
+	\small \color{rwth-blue} Principal Components and Third-Party Software}
+	\begin{itemize}
+	\item dco/c++ for computation of Jacobians, gradients, Hessians and required sparsity patterns
+	\item ColPack for Jacobian and Hessian compression based on graph coloring
+	\item Eigen for sparse linear algebra
+	\end{itemize}
+\end{frame}
+
+\subsection{Class Model(s)}
+
+\begin{frame}
+\frametitle{Design \\
+	\small \color{rwth-blue} Class Model(s)}
+	klassendiagramm (final)
+\end{frame}
+
+\section{Implementation}
+
+\subsection{Development Infrastructure}
+
+\begin{frame}
+\frametitle{Implementation \\
+	\small \color{rwth-blue} Development Infrastructure}
+	\begin{itemize}
+	\item C++ 
+	\item gnu compiler g++
+	\item c++ time to track runtime (oder was auch immer wir benutzen)
+	\item Rwth Compute Cluster (Linux)
+	\end{itemize}
+	Text für vortragenden sollte hier selbstverstöndlich sein:
+	Our software was designed to run on the rwth compute cluster therefore we used c++ with the g++ compiler. (eventuell noch etwas zu runtime tracker)
+	
+	eventuell noch zusatzfolie mit lib architektur
+\end{frame}
+
+\subsection{Source Code}
+
+\begin{frame}
+\frametitle{Implementation \\
+	\small \color{rwth-blue} Source Code}
+	wichtige infos wie build/makefile und besonders ausgefallene methoden
+\end{frame}
+
+\subsection{Software Tests}
+
+\begin{frame}
+\frametitle{Implementation \\
+	\small \color{rwth-blue} Software Tests}
+	case study kurz erklärt und ergebnisse
+\end{frame}
+
+\section{Project Management}
+
+\begin{frame}
+\frametitle{Project Management}
+	\begin{small}
+		\begin{itemize}
+		\item extended infrastructure in nonlinear_system with dco/c++(My, Jan)
+		\item Colpack (Flo)
+		\item Eigen Sparse Datatypes and Newton solver (My, Flo, Jan)
+		\item Debugging (My, Flo, Jan)
+		\item Documentation with Doxygen (My)
+		\item Presentation and Report (My, Jan)
+		\end{itemize}
+	\end{small}
+\end{frame}
+
+\section{Live Software Demo}
+
+\begin{frame}
+\frametitle{Live Software Demo} 
+\end{frame}
+
+\section{Summary and Conclusion}
+
+\begin{frame}
+\frametitle{Summary and Conclusion}
+\end{frame}
+
+\end{document}
