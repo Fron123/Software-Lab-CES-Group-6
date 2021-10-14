@@ -157,8 +157,10 @@ void dSdddf(
     const std::array< T,N>& xv,
     const std::array<TP,NP>& p,
     T& yv,
-    std::array<std::array<std::array<bool,N>,N>,N> &dSdddf
+    std::array<std::array<bool,N>,N> &dSdddf
+    std::array<std::array<std::array<T,N>,N>,N>& dddydxxx
 ){
+    /*
     using DCO_T=dco::p1f::type;
     std::array<DCO_T,N> x,dydx;
     std::array<std::array<DCO_T,N>,N> ddydxx; //,dddydxxx;
@@ -175,6 +177,17 @@ void dSdddf(
     for (size_t k=0;k<N;k++)
         dco::p1f::get(ddydxx[i][j],dSdddf[i][j][k],k);
     }
+    }
+    */
+    T sum = new T;
+    for (size_t i=0;i<N;i++){
+        for(size_t j=0;j<N;j++){
+            sum = 0;
+            for(size_t k=0:k<N;k++){
+                sum = dddydxxx[i][j][k];
+            }
+            dSdddf[i][j] = sum;
+        }
     }
 }
 
