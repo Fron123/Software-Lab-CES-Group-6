@@ -7,7 +7,9 @@
 #include <string>
 #include <fstream>
 
-
+//constant_awareness
+//colpack aktualisieren
+//newtonverfahren für sparse
 
 
 using namespace ColPack;
@@ -27,7 +29,7 @@ void f(
     T& y
 ){
     using namespace std;
-    y=p[0]*x[0]*x[0] + exp(x[1]);
+    y=p[0]*x[0] + sin(x[1])*x[2];
 }
 
 //first derivative (gradient)
@@ -160,33 +162,21 @@ void dSdddf(
     std::array<std::array<bool,N>,N> &dSdddf,
     std::array<std::array<std::array<T,N>,N>,N>& dddydxxx
 ){
-    /*
-    using DCO_T=dco::p1f::type;
-    std::array<DCO_T,N> x,dydx;
-    std::array<std::array<DCO_T,N>,N> ddydxx; //,dddydxxx;
-    DCO_T y;
-    for (size_t i=0;i<N;i++) {
-        x[i] = xv[i];
-        dco::p1f::set(x[i],true,i);
-    }
-    ddf(x,p,y,dydx,ddydxx);
-    dco::p1f::get(y,yv);
 
-    for (size_t i=0;i<N;i++){
-    for (size_t j=0;j<N;j++) {
-    for (size_t k=0;k<N;k++)
-        dco::p1f::get(ddydxx[i][j],dSdddf[i][j][k],k);
-    }
-    }
-    */
     T sum ;
     for (size_t i=0;i<N;i++){
         for(size_t j=0;j<N;j++){
             sum = 0;
             for(size_t k=0;k<N;k++){
-                sum = dddydxxx[i][j][k];
+                sum += dddydxxx[i][j][k];
+
             }
-            dSdddf[i][j] = sum;
+            if (sum == 0) {
+                dSdddf[i][j]=0;
+            }
+            else {
+                dSdddf[i][j]=1;
+                }
         }
     }
 }
@@ -226,8 +216,8 @@ void constant_awareness(
 
 int main() {
     using T=double; using TP=float;
-    const size_t N=2, NP=1;
-    std::array<T,N> x={0.5,0.5};
+    const size_t N=3, NP=1;
+    std::array<T,N> x={1,1,1};
     std::array<TP,NP> p={1.1};
     T y;
 
@@ -277,11 +267,13 @@ int main() {
     std::cout << "Cdf:"<< std::endl;
     for (size_t i=0; i<N; i++)
         std::cout << (sdf[i] != dsddf[i]) << std::endl;
-
-    std::cout << "dCddf:" << std::endl;
-    for (size_t i=0;i<N;i++)
-        std::cout << (dsddf[i]!= dsdddf[i]) << std::endl;
 */
+    std::cout << "dCddf:" << std::endl;
+    for (size_t i=0;i<N;i++) {
+        for(size_t j=0;j<N;j++)
+        std::cout << (dsddf[i][j]!= dsdddf[i][j]) << std::endl;
+    }
+
 
     // Mal in die main Graph Coloring
     int rowCount, columnCount;
