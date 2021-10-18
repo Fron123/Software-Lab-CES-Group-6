@@ -8,10 +8,13 @@
 #include <fstream>
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
+#include <Eigen/Sparse>
+#include <Eigen/SparseLU>
+#include <Eigen/OrderingMethods>
 
 using namespace ColPack;
 
-//objective function 
+//objective function
 //auslagern, dann folgendes:
 template<typename T, typename TP, size_t N, size_t NP>
 void f(
@@ -20,7 +23,7 @@ void f(
     T& y
 ){
     using namespace std;
-    y=p[0]*x[0]*x[0] + exp(x[1]);  //funktionsinput 
+    y=p[0]*x[0]*x[0] + exp(x[1]);  //funktionsinput
 }
 
 //first derivative (gradient)
@@ -59,31 +62,6 @@ void F(
     Eigen::Matrix<T,N,1>& y
 ){
     y << x(0)*x(0),x(1)*x(1),x(2)*x(2),x(3);
-}
-
-//first derivative (gradient)
-template<typename T, typename TP, size_t N, size_t NP>
-void df(
-    const Eigen::Matrix<T,N,1>& xv,
-    const Eigen::Matrix<TP,NP,1>& p,
-    T& yv,
-    Eigen::Matrix<T,N,1>& dydx
-){
-    typedef typename dco::ga1s<T> DCO_M;
-    typedef typename DCO_M::type DCO_T;
-    typedef typename DCO_M::tape_t DCO_TT;
-    DCO_M::global_tape=DCO_TT::create();
-    Eigen::Matrix<DCO_T,N,1> x;
-    DCO_T y;
-    for (size_t i=0;i<N;i++) x(i)=xv(i);
-    for (auto& i:x) DCO_M::global_tape->register_variable(i);
-    f<DCO_T,TP,N,NP>(x,p,y);
-    yv=dco::value(y);
-    DCO_M::global_tape->register_output_variable(y);
-    dco::derivative(y)=1;
-    DCO_M::global_tape->interpret_adjoint();
-    for (size_t i=0;i<N;i++) dydx(i)=dco::derivative(x(i));
-    DCO_TT::remove(DCO_M::global_tape);
 }
 
 //first derivative (Jacobian)
@@ -188,7 +166,7 @@ void S_ddF(
 }
 
 
-//Namen der ganzen übergaben ordentlich machen. Was ist was ? 
+//Namen der ganzen übergaben ordentlich machen. Was ist was ?
 //Namensgebung wie folgt:
 //Ableitungen: dF, ddF etc.
 //Sparsity: S_
@@ -364,12 +342,47 @@ int cols_seed = seed.cols();
       //}
 }
 
+template<typename T, typename TP, size_t N, size_t NP>
+void Newton_Solver(
+  const Eigen::Matrix<T, N, 1>& xv,
+  const Eigen::Matrix<TP, NP, 1>& p,
+  Eigen::Matrix<T, N, 1>& y_s,
+  Eigen::Matrix<double, N, N>& dFc,
+  //Eigen::Matrix<double, N, N>& dFv,
+  Eigen::Matrix<T, N, 1>& dx
+) {
+
+    //Jacobi berechnen
+    Eigen::Matrix<T,N,N> J;
+    J = dFc; //+ dFv;
+
+    //Sparse Matrix A generieren
+    Eigen::SparseMatrix<T> A(N,N);
+    for(size_t i=0;i<N;i++){
+        for(size_t j=0;j<N;j++){
+            if(J(i,j)!=0){
+                A.insert(i,j) = J(i,j);
+            }
+        }
+    }
+
+    //Rechte Seite y_s wird hier überschrieben
+    F<T,TP,N,NP>(xv,p,y_s);
+
+    Eigen::SparseLU<Eigen::SparseMatrix<T>, Eigen::COLAMDOrdering<int>> solver;
+    solver.analyzePattern(A);
+    solver.factorize(A);
+
+    dx = solver.solve(y_s);
+
+}
 
 int main() {
     using T=double; using TP=float;
     const size_t N=4, NP=0;
     Eigen::Matrix<T,N,1> x,y;
     Eigen::Matrix<TP,NP,1> p;
+    float tol = 0.3;
 
     x << 1,1,3,4;
 //Der teil ist irrelevant fürs system und kann mit f und df ausgelagert werden
@@ -398,13 +411,13 @@ int main() {
 
     std::cout << "S_dF:" << std::endl;
     Eigen::Matrix<bool,N,N> dsddf;
-    dSdF<T,TP,N,NP>(x,p,y_s,dsddf);
+    S_dF<T,TP,N,NP>(x,p,y_s,dsddf);
     std::cout << dsddf << std::endl;
 
 
     std::cout << "S_ddF:" << std::endl;
     Eigen::Matrix<bool,N,N> dsdddf;
-    dSddF<T,TP,N,NP>(x,p,y_s,dsdddf);
+    S_ddF<T,TP,N,NP>(x,p,y_s,dsdddf);
     std::cout << dsdddf << std::endl;
 
     std::cout << "Cddf:" << std::endl;
@@ -425,9 +438,7 @@ int main() {
                     dFc(i,j) = 0;
             }
     }
-
-//Hier unten weiß ich nicht, was du davon brauchst und was nicht. Da musst du selber mal aufräumen
-/*
+    std::cout << dFc << std::endl;
 
     Eigen::Matrix<bool, N,N> sVdF;
     sVdF = dsddf - Cddf;
@@ -438,140 +449,23 @@ int main() {
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> compressed_dFv_v;
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> full_dFv_v;
 
+    Eigen::Matrix<double,N,1> dx,x_curr,x_prev;
+
+    x_curr = x;
 
 
+    // Anpassen der aufrufe
+    while(x_curr.norm() > tol){
+       x_prev = x_curr;
+       dFv<T,TP,N,NP>(x_prev,p,y_s,sVdF,seed,sparsity_pattern_dFv,CompressedJacobian,dFc,compressed_dFv_v,full_dFv_v);
+       Newton_Solver<T,TP,N,NP>(x,p,y_s,ddydxx,dx);
+       x_curr = x_prev + dx;
 
-   dFv<T,TP,N,NP>(x,p,y_s,sVdF,seed,sparsity_pattern_dFv,CompressedJacobian,dFc,compressed_dFv_v,full_dFv_v);
-
-   cout << "SeedMatrix: " << endl;
-   cout << seed << endl;
-
-   std::cout << "Compressed Jacobian" << std::endl;
-   std::cout << CompressedJacobian << std::endl;
-
-   std::cout << "compressed_dFv_v" << std::endl;
-   std::cout << compressed_dFv_v << std::endl;
-
-
-
-/*
-
-    Eigen::Matrix<bool, N,N> sVdF;
-    sVdF = dsddf - Cddf;
-
-    cout << "sVdF: " << endl << sVdF << endl;
-
-
-    Eigen::Matrix<int, N,1> x_;
-    x_.setZero();
-
-    int counter = 0;
-    int max = 0;
-
-    for(size_t i = 0; i<N; i++){
-      for(size_t j = 0; j<N;j++){
-        if(sVdF(i,j) == 1){
-          x_(i) += 1;
-          counter++;
-        }
-      }
-      if(counter > max){
-        max = counter + 1;
-      }
-      counter = 0;
     }
 
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> test;
 
-    test = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(N, max);
+    std::cout << dx << std::endl;
 
-    for(size_t i = 0; i<N; i++){
-      test(i,0) = x_(i);
-      int counter = 1;
-      for(size_t j = 0; j<N ;j++){
-
-        if(sVdF(i,j) == 1){
-          test(i,counter) = j;
-          counter++;
-        }
-      }
-    }
-
-    cout << "Adol-C: " << endl << test << endl;
-
-
-    unsigned int **uip2_JacobianSparsityPattern = new unsigned int *[N];
-      for(size_t i=0;i<N;i++) uip2_JacobianSparsityPattern[i] = new unsigned int[N];
-
-    for(size_t i = 0; i < N; i++){
-      for(int j = 0; j < max; j++){
-          uip2_JacobianSparsityPattern[i][j] = test(i,j);
-      }
-    }
-
-    double*** dp3_Seed = new double**;
-    int *ip1_SeedRowCount = new int;
-    int *ip1_SeedColumnCount = new int;
-
-    BipartiteGraphPartialColoringInterface * g = new BipartiteGraphPartialColoringInterface(SRC_MEM_ADOLC,uip2_JacobianSparsityPattern, N ,N);
-
-          g->PartialDistanceTwoColoring( "SMALLEST_LAST", "COLUMN_PARTIAL_DISTANCE_TWO");
-
-    (*dp3_Seed) = g->GetSeedMatrix(ip1_SeedRowCount, ip1_SeedColumnCount);
-
-
-    int rows = g->GetColumnVertexCount();
-          int cols = g->GetRightVertexColorCount();
-    double **Seed = *dp3_Seed;
-
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> seed;
-
-    seed = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(rows, cols);
-
-    for(int i=0; i<rows; i++){
-      for(int j=0; j<cols; j++){
-        seed(i,j) = Seed[i][j];
-      }
-    }
-
-    cout << "SeedMatrix: " << endl;
-    cout << seed << endl;
-
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> Compress;
-    Compress = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(rows, cols);
-
-    Compress = ddydxx*seed;
-    std::cout << "Compressed Jacobian" << std::endl;
-    std::cout << Compress << std::endl;
-/*
-    Eigen::Matrix<T,N,N> DeCompress;
-
-    DeCompress = Compress*dsddf;
-    std::cout << "DeCompressed Jacobian" << std::endl;
-    std::cout << DeCompress << std::endl;
-*/
-
-/*
-    typedef typename dco::gt1s<T>::type DCO_T;
-
-    // compute compressed Jacobian \in R^{n x 2}
-    double** compressedJacobian = new double*[N];
-    for (int i = 0; i < N; i++)
-        compressedJacobian[i] = new double[cols];
-
-    for(int i = 0; i < cols; i++) {
-        for(int j = 0; j < rows; j++){
-            seed(j,i) = dco::derivative(x(j));
-        }
-        f<DCO_T,TP,N,NP>(x,p,y);
-        for(size_t j = 0; j < rows; j++) {
-            compressedJacobian[j][i] = dco::derivative(dydx(j));
-            std::cout << "Compressed Jacobian" << std::endl;
-            std::cout << compressedJacobian[j][i] << std::endl;
-        }
-    }
-
-*/
 
     return 0;
 }
