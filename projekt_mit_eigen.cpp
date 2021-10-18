@@ -11,7 +11,8 @@
 
 using namespace ColPack;
 
-//objective function
+//objective function 
+//auslagern, dann folgendes:
 template<typename T, typename TP, size_t N, size_t NP>
 void f(
     const Eigen::Matrix<T,N,1>& x,
@@ -19,9 +20,38 @@ void f(
     T& y
 ){
     using namespace std;
-    y=p[0]*x[0]*x[0] + exp(x[1]);
+    y=p[0]*x[0]*x[0] + exp(x[1]);  //funktionsinput 
 }
 
+//first derivative (gradient)
+template<typename T, typename TP, size_t N, size_t NP>
+void df(
+    const Eigen::Matrix<T,N,1>& xv,
+    const Eigen::Matrix<TP,NP,1>& p,
+    T& yv,
+    Eigen::Matrix<T,N,1>& dydx
+){
+    typedef typename dco::ga1s<T> DCO_M;
+    typedef typename DCO_M::type DCO_T;
+    typedef typename DCO_M::tape_t DCO_TT;
+    DCO_M::global_tape=DCO_TT::create();
+    Eigen::Matrix<DCO_T,N,1> x;
+    DCO_T y;
+    for (size_t i=0;i<N;i++) x(i)=xv(i);
+    for (auto& i:x) DCO_M::global_tape->register_variable(i);
+    f<DCO_T,TP,N,NP>(x,p,y);
+    yv=dco::value(y);
+    DCO_M::global_tape->register_output_variable(y);
+    dco::derivative(y)=1;
+    DCO_M::global_tape->interpret_adjoint();
+    for (size_t i=0;i<N;i++) dydx(i)=dco::derivative(x(i));
+    DCO_TT::remove(DCO_M::global_tape);
+}
+
+//dydx an "Hauptfunktion übergeben mit y_s = dydx
+//Ende f
+
+//System F
 template<typename T, typename TP, size_t N, size_t NP>
 void F(
     const Eigen::Matrix<T,N,1>& x,
@@ -56,7 +86,7 @@ void df(
     DCO_TT::remove(DCO_M::global_tape);
 }
 
-//second derivative(Jacobian/Hessian)
+//first derivative (Jacobian)
 template<typename T, typename TP, size_t N, size_t NP>
 void dF(
     const Eigen::Matrix<T,N,1>& xv,
@@ -112,33 +142,13 @@ for(int i = 0;i<N;i++){
   }
 }
 
-//sparsity f'
+//sparsity F'
 template<typename T, typename TP, size_t N, size_t NP>
-void Sdf(
-    const Eigen::Matrix<T,N,1>& xv,
-    const Eigen::Matrix<TP,NP,1>& p,
-    T& yv,
-    Eigen::Matrix<bool,N,1> &sdf
-){
-    using DCO_T=dco::p1f::type;
-    Eigen::Matrix<DCO_T,N,1> x;
-    DCO_T y;
-    for (size_t i=0;i<N;i++) {
-        x[i]=xv[i];
-        dco::p1f::set(x[i],true,i);
-    }
-    f<DCO_T,TP,N,NP>(x,p,y);
-    dco::p1f::get(y,yv);
-    for (size_t i=0;i<N;i++) dco::p1f::get(y,sdf(i),i);
-}
-
-//sparsity f''
-template<typename T, typename TP, size_t N, size_t NP>
-void dSdF(
+void S_dF(
     const Eigen::Matrix<T,N,1>& xv,
     const Eigen::Matrix<TP,NP,1>& p,
     Eigen::Matrix<T,N,1>& yv,
-    Eigen::Matrix<bool,N,N> &dSddf
+    Eigen::Matrix<bool,N,N> &S_dF
 ) {
     using DCO_T=dco::p1f::type;
     Eigen::Matrix<DCO_T,N,1> x,y;
@@ -151,44 +161,16 @@ void dSdF(
     F<DCO_T,TP,N,NP>(x,p,y);
     for (size_t i=0; i<N;i++){
         dco::p1f::get(y(i),yv(i));
-    for (size_t j=0;j<N;j++) dco::p1f::get(y(i),dSddf(i,j),j);
+    for (size_t j=0;j<N;j++) dco::p1f::get(y(i),S_dF(i,j),j);
     }
 }
 
-//sparsity f'''
 template<typename T, typename TP, size_t N, size_t NP>
-void dSdddf(
-    const Eigen::Matrix<T,N,1>& xv,
-    const Eigen::Matrix<TP,NP,1>& p,
-    T& yv,
-    Eigen::Matrix<bool,N,N> &dSdddf,
-    std::array<std::array<std::array<T,N>,N>,N>& dddydxxx
-){
-
-    T sum ;
-        for (size_t i=0;i<N;i++){
-            for(size_t j=0;j<N;j++){
-                sum = 0;
-                for(size_t k=0;k<N;k++){
-                    sum += dddydxxx[i][j][k];
-
-                }
-                if (sum == 0) {
-                    dSdddf(i,j)=0;
-                }
-                else {
-                    dSdddf(i,j)=1;
-                    }
-            }
-        }
-    }
-
-template<typename T, typename TP, size_t N, size_t NP>
-void dSddF(
+void S_ddF(
     const Eigen::Matrix<T,N,1>& xv,
     const Eigen::Matrix<TP,NP,1>& p,
     Eigen::Matrix<T,N,1>& yv,
-    Eigen::Matrix<bool,N,N> &dSddf
+    Eigen::Matrix<bool,N,N> &S_ddF
 ) {
     using DCO_T=dco::p1f::type;
     Eigen::Matrix<DCO_T,N,1> x,y;
@@ -201,9 +183,23 @@ void dSddF(
     dF<DCO_T,TP,N,NP>(x,p,y,dydx);
     for (size_t i=0; i<N;i++){
         dco::p1f::get(y(i),yv(i));
-    for (size_t j=0;j<N;j++) dco::p1f::get(dydx(i,j),dSddf(i,j),j);
+    for (size_t j=0;j<N;j++) dco::p1f::get(dydx(i,j),S_ddF(i,j),j);
     }
 }
+
+
+//Namen der ganzen übergaben ordentlich machen. Was ist was ? 
+//Namensgebung wie folgt:
+//Ableitungen: dF, ddF etc.
+//Sparsity: S_
+//Variabler teil Jacobi dFv
+//konstanter Teil Jacobi dFc
+//Seedmatrix V_
+//compressed comp_
+//Konstante elemente C_
+
+//Beispiel comp_S_dFv ist das komprimierte Sparsitypattern der variablen Teilmatrix der Jacobimatrix
+
 //Decompressed
 template<typename T, typename TP, size_t N, size_t NP>
 void dFv(
@@ -321,6 +317,8 @@ int cols_seed = seed.cols();
 
   compressed_dFv_v = CompressedJacobian - CdF_ * seed;
 
+//Recovery Teil - fixed by Matteo
+
   // std::vector<std::vector<double>> fulldFv(N,std::vector<double>(N,0.0));
 
     // int rows_cj = compressed_dFv_v.rows();
@@ -374,7 +372,7 @@ int main() {
     Eigen::Matrix<TP,NP,1> p;
 
     x << 1,1,3,4;
-
+//Der teil ist irrelevant fürs system und kann mit f und df ausgelagert werden
 /*
     std::cout << "f:" << std::endl;
     f<T,TP,N,NP>(x,p,y);
@@ -388,39 +386,27 @@ int main() {
     Eigen::Matrix<T,N,1> y_s;
     F<T,TP,N,NP>(x,p,y_s);
 
-    std::cout << "ddf:" << std::endl;
+    std::cout << "dF:" << std::endl;
     Eigen::Matrix<T,N,N> ddydxx;
     dF<T,TP,N,NP>(x,p,y_s,ddydxx);
     std::cout << ddydxx << std::endl;
 
-    // TENSOR ODER SO, kp bin kein Iformatiker
-    std::cout <<"dddf:" << std::endl;
+    std::cout <<"ddF:" << std::endl;
     Eigen::Matrix<T,N,N> dddydxxx;
     ddF<T,TP,N,NP>(x,p,y_s,ddydxx,dddydxxx);
     std::cout << dddydxxx << std::endl;
-/*
-    for (const auto& i:dddydxxx)
-    for (const auto& j:i)
-    for (const auto& k:j)
-    std::cout << k << std::endl;
 
-
-    std::cout << "Sdf:" << std::endl;
-    Eigen::Matrix<bool,N,1> sdf;
-    Sdf<T,TP,N,NP>(x,p,y,sdf);
-    std::cout << sdf << std::endl;
-*/
-    std::cout << "dSddf:" << std::endl;
+    std::cout << "S_dF:" << std::endl;
     Eigen::Matrix<bool,N,N> dsddf;
     dSdF<T,TP,N,NP>(x,p,y_s,dsddf);
     std::cout << dsddf << std::endl;
 
 
-    std::cout << "dSdddf:" << std::endl;
+    std::cout << "S_ddF:" << std::endl;
     Eigen::Matrix<bool,N,N> dsdddf;
     dSddF<T,TP,N,NP>(x,p,y_s,dsdddf);
     std::cout << dsdddf << std::endl;
-/*
+
     std::cout << "Cddf:" << std::endl;
     Eigen::Matrix<bool,N,N> Cddf;
     for (size_t i=0;i<N;i++) {
@@ -439,6 +425,9 @@ int main() {
                     dFc(i,j) = 0;
             }
     }
+
+//Hier unten weiß ich nicht, was du davon brauchst und was nicht. Da musst du selber mal aufräumen
+/*
 
     Eigen::Matrix<bool, N,N> sVdF;
     sVdF = dsddf - Cddf;
