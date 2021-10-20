@@ -23,7 +23,12 @@ void f(
     T& y
 ){
     using namespace std;
-    y = sin(x[0]*p[0])+sin(x[1]*p[0]);  //funktionsinput
+    T sum = 0;
+    //y = x[0]*x[0]+x[1]*x[1]+p[0]-log(x[0]-p[1])-log(x[1]-p[1]);  //funktionsinput
+    //y = pow(p[0]-x[0],2)+p[1]*pow(x[1]-pow(x[0],2),2); //Rosenbrock
+    for (size_t i =0;i<N-1;i++) sum += p[1]*pow(x[i+1]-pow(x[i],2),2)+pow(p[0]-x[i],2);
+    y = sum;
+
 }
 
 //first derivative (gradient)
