@@ -21,7 +21,7 @@ void solve_system(
     Eigen::Matrix<T,N,1>& x_stationary
 ){
     //Eigen::Matrix<TP,NP,1> p;
-    float tol = 0.01;
+    float tol = 0.001;
 
     //x << 1,1,1,1,1,1,1,1,1,1;
     //for(size_t i=0;i<N;i++) x(i) = 1;
@@ -118,7 +118,7 @@ void solve_system(
 
     }
 
-
+    std::cout << "Iterations:" << i << std::endl;
     std::cout << "x_curr:" << std::endl << x_curr << std::endl;
     x_stationary = x_curr;
 }
@@ -127,7 +127,7 @@ void solve_system(
 
 int main() {
     using T=double; using TP=float;
-    const size_t N=2, NP=1;
+    const size_t N=5, NP=2;
     Eigen::Matrix<T,N,1> x;
     Eigen::Matrix<TP,NP,1> p;
     T y;
@@ -135,8 +135,11 @@ int main() {
 
 
     //Startvektor Eingeben
-    for(size_t i=0;i<N;i++) x(i) = 1;
-    p(0) = 1.1;
+    for(size_t i=0;i<N;i++) x(i) = 5;
+    //x(0) = -5;
+    //x(1) = 5;
+    p(0) = 1;
+    p(1) = 100;
     std::cout << "Startvektor:" << std::endl << x << std::endl;
 
     /*
