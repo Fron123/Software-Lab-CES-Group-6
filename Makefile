@@ -2,6 +2,13 @@
 #        delete OMP_FLAG=-fopenmp in MAC OS system
 #	 change also the Paths from Eigen and dco
 COLPACK_ROOT = $(HOME)/Software/ColPack
+EIGEN_DIR=$(HOME)/Software/Eigen
+DCO_DIR=$(HOME)/Software/dco
+BASE_DIR=$(HOME)/Dokumente/SP_CES/Code    
+
+
+
+
 COLPACK_SRC = $(wildcard ${COLPACK_ROOT}/src/GeneralGraphColoring/*.cpp)
 COLPACK_SRC+= $(wildcard ${COLPACK_ROOT}/src/Utilities/*.cpp)
 COLPACK_SRC+= $(wildcard ${COLPACK_ROOT}/src/BipartiteGraphBicoloring/*.cpp)
@@ -15,14 +22,11 @@ SRC = $(wildcard *.cpp)
 OBJ = $(SRC:%.cpp=%.o) $(COLPACK_OBJ)
 EXE=$(addsuffix .exe, $(basename $(wildcard *.cpp)))
 
-EIGEN_DIR=$(HOME)/Software/Eigen
-DCO_DIR=$(HOME)/Software/dco
 DCO_INC_DIR=$(DCO_DIR)/include
 DCO_LIB_DIR=$(DCO_DIR)/lib
 DCO_FLAGS=-DDCO_DISABLE_AUTO_WARNING
 DCO_LIB=dcoc
 
-BASE_DIR=$(HOME)/Dokumente/SP_CES/Code
 LIBLS_INC_DIR=$(BASE_DIR)/LINEAR_SYSTEM/libls/include
 LIBNLS_INC_DIR=$(BASE_DIR)/NONLINEAR_SYSTEM/libnls/include
 LIBNLS_APPS_INC_DIR=$(BASE_DIR)/NONLINEAR_SYSTEM/libnls_apps/include
