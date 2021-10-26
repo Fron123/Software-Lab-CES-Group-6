@@ -50,3 +50,15 @@ Build the solver
 ---------------------------------------------
 
 Before you can build the solver you must edit the Makefile. It is necessary that the path are right, if there aren't correct the solver could not be build. You must edit the main Makefile. Here you have a little Example: 
+
+            COLPACK_ROOT = $(HOME)/Software/ColPack
+            EIGEN_DIR=$(HOME)/Software/Eigen
+            DCO_DIR=$(HOME)/Software/dco
+            BASE_DIR=$(HOME)/Dokumente/SP_CES/Code    
+          
+In this Example you can see the third party software are all together in one Folder, that is recommended. If you have installed e.g. ColPack in the Path /Documents/Stuff/Colpack,
+then you must change the path to $(HOME)/Documents/Stuff/ColPack. The same goes for the others paths. 
+
+Usages
+--------------------------------------------
+Compute big shit in very long time
