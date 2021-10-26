@@ -1,7 +1,6 @@
-# makefile for non-installed user
-# author: xin cheng
 # usage: change the following variable COLPACK_ROOT accordingly
 #        delete OMP_FLAG=-fopenmp in MAC OS system
+#	 change also the Paths from Eigen and dco
 COLPACK_ROOT = $(HOME)/Software/ColPack
 COLPACK_SRC = $(wildcard ${COLPACK_ROOT}/src/GeneralGraphColoring/*.cpp)
 COLPACK_SRC+= $(wildcard ${COLPACK_ROOT}/src/Utilities/*.cpp)
