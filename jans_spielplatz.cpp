@@ -51,7 +51,7 @@ void dF(
     }
 }
 
-//second derivative
+//second derivative F''
 template<typename T, typename TP, size_t N, size_t NP>
 void ddF(
     const std::array<T,N>& xv,
@@ -82,30 +82,53 @@ void ddF(
         //yv[i]=dco::value(y[i]);
     }
 }
-/*
 
-//sparsity F'
+//sparsity jacobian
 template<typename T, typename TP, size_t N, size_t NP>
 void S_dF(
-    const Eigen::Matrix<T,N,1>& xv,
-    const Eigen::Matrix<TP,NP,1>& p,
-    Eigen::Matrix<T,N,1>& yv,
-    Eigen::Matrix<bool,N,N> &S_dF
-) {
+    const std::array<T,N>& xv,
+    const std::array<TP,NP>& p,
+    std::array<T,N>& yv,
+    std::array<std::array<bool,N>,N>& S_dF
+){
     using DCO_T=dco::p1f::type;
-    Eigen::Matrix<DCO_T,N,1> x,y;
-    Eigen::Matrix<DCO_T,N,N> dydx;
+    std::array<DCO_T,N> x,y;
+    //std::array<std::array<DCO_T,N>,N> dydx;
 
-    for (size_t i =0;i<N;i++) {
-        x[i]=xv[i];
+    for(size_t i=0; i<N; i++){
+        x[i] = xv[i];
         dco::p1f::set(x[i],true,i);
     }
-    F<DCO_T,TP,N,NP>(x,p,y);
-    for (size_t i=0; i<N;i++){
-        dco::p1f::get(y(i),yv(i));
-    for (size_t j=0;j<N;j++) dco::p1f::get(y(i),S_dF(i,j),j);
+    F(x,p,y);
+    for(size_t i=0; i<N; i++) {
+        dco::p1f::get(y[i],yv[i]);
+        for(size_t j=0; j<N; j++) dco::p1f::get(y[i],S_dF[i][j],j);
     }
 }
+
+//sparsity F''
+template<typename T, typename TP, size_t N, size_t NP>
+void S_ddF(
+    const std::array<T,N>& xv,
+    const std::array<TP,NP>& p,
+    std::array<T,N>& yv,
+    std::array<std::array<bool,N>,N>& S_ddF
+){
+    using DCO_T=dco::p1f::type;
+    std::array<DCO_T,N> x,y;
+    std::array<std::array<DCO_T,N>,N> dydx;
+
+    for(size_t i=0; i<N; i++){
+        x[i] = xv[i];
+        dco::p1f::set(x[i],true,i);
+    }
+    dF(x,p,y,dydx);
+    for(size_t i=0; i<N; i++) {
+        dco::p1f::get(y[i],yv[i]);
+        for(size_t j=0; j<N; j++) dco::p1f::get(y[i][j],S_ddF[i][j],j);
+    }
+}
+/*
 
 template<typename T, typename TP, size_t N, size_t NP>
 void S_ddF(
@@ -360,6 +383,19 @@ int main() {
     ddF(x,p,y,dydx,d2ydx2):
     std::cout << "ddF: " << std::endl;
     for(const auto& i:d2ydx2)
+    for(const auto& j:i)
+    std::cout << j << std::endl;
+
+    std::array<std::array<T,N>,N> S_dF, S_ddF;
+    S_dF(x,p,y,dydx);
+    std::cout << "S_dF: " << std::endl;
+    for(const auto& i:S_dF) 
+        for(const auto& j:i)
+            std::cout << j << std::endl;
+
+    S_ddF(x,p,y,dydx,d2ydx2):
+    std::cout << "S_ddF: " << std::endl;
+    for(const auto& i:S_ddF)
     for(const auto& j:i)
     std::cout << j << std::endl;
 }
