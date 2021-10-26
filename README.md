@@ -5,7 +5,7 @@
 2. [Installation Guide](#installation-guide)
             2.1 [Download solver](#download-solver)
             2.2 [Necessary third party software](#necessary-third-party-software)
-            2.3 [Build the solver](#build)
+            2.3 [Build the solver](#build-the-solver)
 3. [Usages](#usage)
 &nbsp;
 
@@ -41,3 +41,12 @@ If you want to use the Terminal follow these instructions:
     cd              
     git clone https://github.com/CSCsw/ColPack.git   #Download ColPack
     cd ColPack                   # go to ColPack Root Directory
+
+And finally you will need the software Eigen. Eigen is used for the computation of the Linear systems. In our case we use the Spase LU solver of Eigen. You can download Eigen on the Website:
+
+    https://eigen.tuxfamily.org/index.php?title=Main_Page
+
+Build the solver
+---------------------------------------------
+
+Before you can build the solver you must edit the Makefile. It is necessary that the path are right, if there aren't correct the solver could not be build. You must edit the main Makefile. Here you have a little Example: 
