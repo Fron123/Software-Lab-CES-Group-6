@@ -4,7 +4,7 @@
 1. [Constant Aware Sparse Newton Solver](#solver)
 2. [Installation Guide](#installation-guide) <br>
             2.1 [Download solver](#download-solver) <br>
-            2.2 [Necessary third party software](#necessary-third-party-software)
+            2.2 [Necessary third party software](#necessary-third-party-software) <br>
             2.3 [Build the solver](#build-the-solver)
 3. [Usages](#usage)
 &nbsp;
