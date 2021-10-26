@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/CSCsw/ColPack.svg?branch=master)](https://travis-ci.org/ProbShin/ColPack)
+
+
 # SWEP
 Software Lab CES
 
