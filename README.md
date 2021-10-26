@@ -15,9 +15,14 @@
 Some Discription of the solver should look like the one in the Report
 
 
-# Installation Guide
+Installation Guide
 ======================================
-This Software is based on C++, so you first need a compatible system. If you already got this, you can download this repository directly over this site. If you want to istall this Software directly over the Linux terminal you must follow these instruction:
+This Software is based on C++, so you first need a compatible system. 
 
-git clone https://github.com/Fron123/Software-Lab-CES-Group-5.git   #Download Software
+Download solver
+--------------------------------------
+If you already got this, you can download this repository directly over this site. If you want to istall this Software directly over the Linux terminal you must follow these instruction:
 
+    git clone https://github.com/Fron123/Software-Lab-CES-Group-5.git   #Download Software
+   
+   
