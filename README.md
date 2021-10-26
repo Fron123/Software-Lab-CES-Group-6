@@ -1,8 +1,4 @@
-[![Build Status](https://travis-ci.org/CSCsw/ColPack.svg?branch=master)](https://travis-ci.org/ProbShin/ColPack)
-
-
-# SWEP
-Software Lab CES
+# Software Lab CES
 
 # Table of Contents
 1. [Constant Aware Sparse Newton Solver](#solver)
@@ -11,6 +7,7 @@ Software Lab CES
             2.2 [Necessary third party Software](#thirdparty)
             2.3 [Build the solver](#build)
 3. [Usages](#usage)
+&nbsp;
 
 
 # Solver
