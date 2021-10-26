@@ -6,373 +6,360 @@
 #include <typeinfo>
 #include <string>
 #include <fstream>
-
-//constant_awareness
-//colpack aktualisieren
-//newtonverfahren für sparse
-
+#include <Eigen/Dense>
+#include <Eigen/Eigenvalues>
+#include <Eigen/Sparse>
+#include <Eigen/SparseLU>
+#include <Eigen/OrderingMethods>
 
 using namespace ColPack;
 
-
-#ifndef TOP_DIR
-#define TOP_DIR "."
-#endif
-
-string baseDir=TOP_DIR;
-
-//objective function
+//residual
 template<typename T, typename TP, size_t N, size_t NP>
-void f(
+void F(
     const std::array<T,N>& x,
     const std::array<TP,NP>& p,
-    T& y
-){
-    using namespace std;
-    y=p[0]*x[0] + sin(x[1])*x[2];
+    std::array<T,N> y
+) {
+    //residual
+    for(size_t i = 0; i < N; i++)
+        y[i] = -(x[i]*x[i])+i+1;
 }
 
-//first derivative (gradient)
+//jacobian
 template<typename T, typename TP, size_t N, size_t NP>
-void df(
+void dF(
     const std::array<T,N>& xv,
     const std::array<TP,NP>& p,
-    T& yv,
-    std::array<T,N>& dydx
-){
-    typedef typename dco::ga1s<T> DCO_M;
-    typedef typename DCO_M::type DCO_T;
-    typedef typename DCO_M::tape_t DCO_TT;
-    DCO_M::global_tape=DCO_TT::create();
-    std::array<DCO_T,N> x;
-    DCO_T y;
-    for (size_t i=0;i<N;i++) x[i]=xv[i];
-    for (auto& i:x) DCO_M::global_tape->register_variable(i);
-    f(x,p,y);
-    yv=dco::value(y);
-    DCO_M::global_tape->register_output_variable(y);
-    dco::derivative(y)=1;
-    DCO_M::global_tape->interpret_adjoint();
-    for (size_t i=0;i<N;i++) dydx[i]=dco::derivative(x[i]);
-    DCO_TT::remove(DCO_M::global_tape);
-}
-
-//second derivative(Jacobian/Hessian)
-template<typename T, typename TP, size_t N, size_t NP>
-void ddf(
-    const std::array<T,N>& xv,
-    const std::array<TP,NP>& p,
-    T& yv,
-    std::array<T,N>& dydx_v,
-    std::array<std::array<T,N>,N>& ddydxx
+    std::array<T,N>& yv,
+    std::array<std::array<T,N>,N> dydx
 ){
     typedef typename dco::gt1v<T,N>::type DCO_T;
-    std::array<DCO_T,N> x,dydx;
-    DCO_T y;
-    for (size_t i=0;i<N;i++) {
-        x[i]=xv[i];
-        dco::derivative(x[i])[i]=1;
+    std::array<DCO_T,N> x,y;
+    for(size_t i=0; i<N; i++){
+        y[i] = yv[i];
+        x[i] = xv[i];
     }
-    df(x,p,y,dydx);
-    yv=dco::value(y);
-    for (size_t i=0;i<N;i++) {
-        dydx_v[i]=dco::value(dydx[i]);
-        for (size_t j=0;j<N;j++) ddydxx[i][j]=dco::derivative(dydx[i])[j];
+
+    for(size_t i=0; i<N; i++){
+        dco::derivative(x[i]) = 1;
+    }
+    F(x,p,y);
+    for(size_t i=0; i<N; i++){
+        for(size_t j=0; j<N; j++) dydx[j][i]=dco::derivative(y[j]);
+        dco::derivative(x[i]) = 0;
     }
 }
 
-//third derivative (tensor)
+//second derivative
 template<typename T, typename TP, size_t N, size_t NP>
-void dddf(
+void ddF(
     const std::array<T,N>& xv,
     const std::array<TP,NP>& p,
-    T& yv,
-    std::array<T,N>& dydx_v,
-    std::array<std::array<T,N>,N>& ddydxx_v,
-    std::array<std::array<std::array<T,N>,N>,N>& dddydxxx
+    std::array<T,N>& yv,
+    std::array<std::array<T,N>,N>& dydx_v,
+    std::array<std::array<T,N>,N> d2ydx2
 ){
-    typedef typename dco::gt1v<T,N>::type DCO_T;
-    std::array<DCO_T,N> x,dydx;
-    std::array<std::array<DCO_T,N>,N> ddydxx;
-    DCO_T y;
-    for(size_t i=0;i<N;i++) {
-        x[i]=xv[i];
-        dco::derivative(x[i])[i]=1;
+    typedef typename dco::gt1s<T>::type DCO_T;
+    std::array<DCO_T,N> x,y;
+    std::array<std::array<DCO_T,N>,N> dydx;
+
+    for(size_t i=0; i<N; i++){
+        x[i] = xv[i];
+        dco::derivative(x[i]) = 1;
+        for(size_t j=0; j<N; j++){
+            d2ydx2[i][j] = 0;
+        } 
     }
-    ddf(x,p,y,dydx,ddydxx);
-    yv=dco::value(y);
-    for (size_t i=0;i<N;i++) {
-        dydx_v[i]=dco::value(dydx[i]);
-        for (size_t j=0;j<N;j++){
-            ddydxx_v[i][j] = dco::value(ddydxx[i][j]);
-            for (size_t k=0;k<N;k++) dddydxxx[i][j][k]=dco::derivative(ddydxx[i][j])[k];
+    dF(x,p,y,dydx);
+
+    for(size_t i=0; i<N; i++) {
+        for(size_t j=0; j<N; j++) {
+            //dydx_v[i][j] = dco::derivative(dydx[i][j]);
+            d2ydx2[j][i] += dco::derivative(dydx[j][i]);
         }
+        dco::derivative(x[i])=0;
+        //yv[i]=dco::value(y[i]);
     }
 }
+/*
 
-//sparsity f'
+//sparsity F'
 template<typename T, typename TP, size_t N, size_t NP>
-void Sdf(
-    const std::array<T,N>& xv,
-    const std::array<TP,NP>& p,
-    T& yv,
-    std::array<bool,N> &sdf
-){
-    using DCO_T=dco::p1f::type;
-    std::array<DCO_T,N> x;
-    DCO_T y;
-    for (size_t i=0;i<N;i++) {
-        x[i]=xv[i];
-        dco::p1f::set(x[i],true,i);
-    }
-    f(x,p,y);
-    dco::p1f::get(y,yv);
-    for (size_t i=0;i<N;i++) dco::p1f::get(y,sdf[i],i);
-}
-
-//sparsity f''
-template<typename T, typename TP, size_t N, size_t NP>
-void dSddf(
-    const std::array<T,N>& xv,
-    const std::array<TP,NP>& p,
-    T& yv,
-    std::array<std::array<bool,N>,N> &dSddf
+void S_dF(
+    const Eigen::Matrix<T,N,1>& xv,
+    const Eigen::Matrix<TP,NP,1>& p,
+    Eigen::Matrix<T,N,1>& yv,
+    Eigen::Matrix<bool,N,N> &S_dF
 ) {
     using DCO_T=dco::p1f::type;
-    std::array<DCO_T,N> x,dydx;
-    //std::array<std::array<DCO_T,N>,N> ddydxx;
-    DCO_T y;
+    Eigen::Matrix<DCO_T,N,1> x,y;
+    Eigen::Matrix<DCO_T,N,N> dydx;
+
     for (size_t i =0;i<N;i++) {
         x[i]=xv[i];
         dco::p1f::set(x[i],true,i);
     }
-    df(x,p,y,dydx);
-    dco::p1f::get(y,yv);
+    F<DCO_T,TP,N,NP>(x,p,y);
     for (size_t i=0; i<N;i++){
-    for (size_t j=0;j<N;j++) dco::p1f::get(dydx[i],dSddf[i][j],j);
+        dco::p1f::get(y(i),yv(i));
+    for (size_t j=0;j<N;j++) dco::p1f::get(y(i),S_dF(i,j),j);
     }
 }
 
-//sparsity f'''
 template<typename T, typename TP, size_t N, size_t NP>
-void dSdddf(
-    const std::array< T,N>& xv,
-    const std::array<TP,NP>& p,
-    T& yv,
-    std::array<std::array<bool,N>,N> &dSdddf,
-    std::array<std::array<std::array<T,N>,N>,N>& dddydxxx
-){
+void S_ddF(
+    const Eigen::Matrix<T,N,1>& xv,
+    const Eigen::Matrix<TP,NP,1>& p,
+    Eigen::Matrix<T,N,1>& yv,
+    Eigen::Matrix<bool,N,N> &S_ddF
+) {
+    using DCO_T=dco::p1f::type;
+    Eigen::Matrix<DCO_T,N,1> x,y;
+    Eigen::Matrix<DCO_T,N,N> dydx;
 
-    T sum ;
-    for (size_t i=0;i<N;i++){
+    for (size_t i =0;i<N;i++) {
+        x[i]=xv[i];
+        dco::p1f::set(x[i],true,i);
+    }
+    dF<DCO_T,TP,N,NP>(x,p,y,dydx);
+    for (size_t i=0; i<N;i++){
+        dco::p1f::get(y(i),yv(i));
+    for (size_t j=0;j<N;j++) dco::p1f::get(dydx(i,j),S_ddF(i,j),j);
+    }
+}
+
+
+//Namen der ganzen übergaben ordentlich machen. Was ist was ?
+//Namensgebung wie folgt:
+//Ableitungen: dF, ddF etc.
+//Sparsity: S_
+//Variabler teil Jacobi dFv
+//konstanter Teil Jacobi dFc
+//Seedmatrix V_
+//compressed comp_
+//Konstante elemente C_
+
+//Beispiel comp_S_dFv ist das komprimierte Sparsitypattern der variablen Teilmatrix der Jacobimatrix
+
+//Decompressed
+template<typename T, typename TP, size_t N, size_t NP>
+void dFv(
+  const Eigen::Matrix<T, N, 1>& xv,
+  const Eigen::Matrix<TP, NP, 1>& p,
+  Eigen::Matrix<T, N, 1>& y_s,
+  Eigen::Matrix<bool, N, N> sparsity_pattern,
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& seed,
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& sparsity_pattern_dFv,
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& CompressedJacobian,
+  Eigen::Matrix<double, N, N>& CdF_,
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& compressed_dFv_v,
+  Eigen::Matrix<double, N,N>& full_dFv_v
+) {
+
+    Eigen::Matrix<int, N,1> x_;
+    x_.setZero();
+
+    for(int i = 0; i<N; i++){
+        for(int j = 0; j<N;j++){
+          if(sparsity_pattern(i,j) == 1){
+            x_(i) += 1;
+          }
+        }
+      }
+
+
+int max = x_.maxCoeff() + 1;
+
+sparsity_pattern_dFv = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(N, max);
+
+for(int i = 0; i<N; i++){
+    sparsity_pattern_dFv(i,0) = x_(i);
+    int counter = 1;
+    for(int j = 0; j<N ;j++){
+
+      if(sparsity_pattern(i,j) == 1){
+        sparsity_pattern_dFv(i,counter) = j;
+        counter++;
+      }
+    }
+  }
+
+unsigned int **uip2_JacobianSparsityPattern = new unsigned int *[N];
+for(int i=0;i<N;i++) uip2_JacobianSparsityPattern[i] = new unsigned int[N];
+
+  for(int i = 0; i < N; i++){
+    for(int j = 0; j < max; j++){
+        uip2_JacobianSparsityPattern[i][j] = sparsity_pattern_dFv(i,j);
+    }
+  }
+
+  double*** dp3_Seed = new double**;
+  int *ip1_SeedRowCount = new int;
+  int *ip1_SeedColumnCount = new int;
+
+  BipartiteGraphPartialColoringInterface* g = new BipartiteGraphPartialColoringInterface(SRC_MEM_ADOLC,uip2_JacobianSparsityPattern, N ,N);
+
+  g->PartialDistanceTwoColoring( "SMALLEST_LAST", "COLUMN_PARTIAL_DISTANCE_TWO");
+
+  (*dp3_Seed) = g->GetSeedMatrix(ip1_SeedRowCount, ip1_SeedColumnCount);
+
+
+  int rows = g->GetColumnVertexCount();
+  int cols = g->GetRightVertexColorCount();
+  double **Seed = *dp3_Seed;
+
+  seed = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(rows, cols);
+
+  for(int i=0; i<rows; i++){
+    for(int j=0; j<cols; j++){
+      seed(i,j) = Seed[i][j];
+    }
+  }
+
+using DCO_T=typename dco::gt1s<T>::type;
+
+int rows_seed = seed.rows();
+int cols_seed = seed.cols();
+
+  Eigen::Matrix<DCO_T, N, 1> x;
+  Eigen::Matrix<DCO_T, N, 1> yv;
+  Eigen::Matrix<DCO_T, N, 1> y;
+
+  for(size_t i = 0;i<N;i++){
+      x(i) = xv(i);
+      yv(i) = y_s(i);
+  }
+
+  double** compressedJacobian = new double*[N];
+    for (size_t i = 0; i < N; i++)
+        compressedJacobian[i] = new double[cols_seed];
+
+    for(size_t i = 0; i < cols_seed; i++) {
+        for(size_t j = 0; j < rows_seed; j++){
+            dco::derivative(x(j)) = seed(j,i); //der Clou dahinter
+        }
+        F<DCO_T,TP,N,NP>(x,p,yv);
+        for(size_t j = 0; j < rows_seed; j++) {
+            compressedJacobian[j][i] = dco::derivative(yv(j));
+        }
+    }
+
+
+  CompressedJacobian = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Zero(rows_seed, cols_seed);
+
+    for(int i=0; i<rows_seed; i++){
+        for(int j=0; j<cols_seed; j++){
+            CompressedJacobian(i,j) = compressedJacobian[i][j];
+        }
+    }
+
+  compressed_dFv_v = CompressedJacobian - CdF_ * seed;
+
+//Recovery Teil - fixed by Matteo
+
+   std::vector<std::vector<double>> fulldFv(N,std::vector<double>(N,0.0));
+
+    int rows_cj = compressed_dFv_v.rows();
+    int cols_cj = compressed_dFv_v.cols();
+
+    double **compressed_dFv = new  double *[rows_cj];
+    for(int i=0;i<rows_cj;i++) compressed_dFv[i] = new double[cols_cj];
+
+    for(int i = 0; i < rows_cj; i++){
+      for(int j = 0; j < cols_cj; j++){
+          compressed_dFv[i][j] = compressed_dFv_v(i,j);
+      }
+    }
+
+    int rows_spdF_v = sparsity_pattern_dFv.rows();
+    int cols_spdF_v = sparsity_pattern_dFv.cols();
+
+    unsigned int **sparsity_pattern_dFv_array = new unsigned int *[rows_spdF_v];
+    for(int i=0;i<rows_spdF_v;i++) sparsity_pattern_dFv_array[i] = new unsigned int[rows_spdF_v];
+
+    for(int i = 0; i < rows_spdF_v; i++){
+        for(int j = 0; j < cols_spdF_v; j++){
+          sparsity_pattern_dFv_array[i][j] = sparsity_pattern_dFv(i,j);
+        }
+    }
+
+
+      JacobianRecovery1D jr1d;
+      unsigned int* rowIndex;
+      unsigned int* colIndex;
+      double* jacValue;
+      int nnz = jr1d.RecoverD2Cln_CoordinateFormat(g, compressed_dFv, sparsity_pattern_dFv_array, &rowIndex, &colIndex, &jacValue);
+      for(int i = 0; i < nnz; i++){
+          fulldFv[rowIndex[i]][colIndex[i]] = jacValue[i];
+      }
+    // Hier noch fulldFV in eigen übertragen!!
+
+       for(int i=0; i<N; i++){
+           for(int j=0; j<N; j++){
+               full_dFv_v(i,j) = fulldFv[i][j];
+           }
+      }
+}
+
+template<typename T, typename TP, size_t N, size_t NP>
+void Newton_Solver(
+  const Eigen::Matrix<T, N, 1>& xv,
+  const Eigen::Matrix<TP, NP, 1>& p,
+  Eigen::Matrix<T, N, 1>& y_s,
+  Eigen::Matrix<double,N,N>& full_dFc,
+  Eigen::Matrix<double, N,N>& full_dFv,
+  Eigen::Matrix<double, N, 1>& dx
+) {
+
+    //Jacobi berechnen
+    Eigen::Matrix<T,N,N> J;
+    J = full_dFc + full_dFv;
+    //Sparse Matrix A generieren
+    Eigen::SparseMatrix<T> A(N,N);
+    for(size_t i=0;i<N;i++){
         for(size_t j=0;j<N;j++){
-            sum = 0;
-            for(size_t k=0;k<N;k++){
-                sum += dddydxxx[i][j][k];
-
+            if(J(i,j)!=0){
+                A.insert(i,j) = J(i,j);
             }
-            if (sum == 0) {
-                dSdddf[i][j]=0;
-            }
-            else {
-                dSdddf[i][j]=1;
-                }
-        }
-    }
-}
-
-//Constant Awareness
-template<typename T, typename TP, size_t N, size_t NP>
-void constant_awareness(
-    const std::array<std::array<T,N>,N> ddf_c,
-    const std::array<std::array<T,N>,N> ddf_v,
-    std::array<std::array<T,N>,N>& ddydxx,
-    std::array<bool,N> &dsdddf,
-    std::array<bool,N> &dsddf
-){
-    std::array<std::array<T,N>,N> cdf;
-
-    //std::cout << "Cdf:" << std::endl;
-    for (size_t i=0;i<dsddf.size();i++) cdf[i] = (dsddf[i]!= dsdddf[i]);
-    //    std::cout << (dsddf[i]!=dsdddf[i]) << std::endl;
-
-    //einteilung in die teil-matrizen
-    //Theoretisch kann man sich zeile 216 sparen, wenn man die dsddf != dsdddf als bedingung in if packt.
-    //zum "debugging" ist die ausgabe von cdf aber eventuell sinnvoll
-
-    // Flo :Hier in die Schleife muss ein j statt dem i hin oder irre ich mich ?
-
-    for (size_t j=0;j<dsddf.size();j++) {
-        if (cdf[j] = 0) {
-            ddf_c[j] = ddydxx[j];
-        }
-        else {
-            ddf_v[j] = ddydxx[j];
         }
     }
 
+    //Rechte Seite y_s wird hier überschrieben
+    F<T,TP,N,NP>(xv,p,y_s);
+
+    A.makeCompressed();
+    Eigen::SparseLU<Eigen::SparseMatrix<T>, Eigen::COLAMDOrdering<int> > solver;
+    solver.analyzePattern(A);
+    solver.factorize(A);
+
+    dx = solver.solve(-y_s);
 
 }
+
+*/
 
 int main() {
     using T=double; using TP=float;
-    const size_t N=3, NP=1;
-    std::array<T,N> x={1,1,1};
-    std::array<TP,NP> p={1.1};
-    T y;
+    const size_t N=2, NP=0;
+    std::array<T,N> x={1,1};
+    std::array<TP,NP> p;
+    
+    std::array<T,N> y;
+    F(x,p,y);
+    std::cout << "F: " << std::endl;
+    for(const auto& i:y) std::cout << i << std::endl;
 
-    std::cout << "f:" << std::endl;
-    f(x,p,y);
-    std::cout << y << std::endl;
-
-    std::cout << "df:" << std::endl;
-    std::array<T,N> dydx;
-    df(x,p,y,dydx);
-    for (const auto& i:dydx) std::cout << i << std::endl;
-
-    std::cout << "ddf:" << std::endl;
-    std::array<std::array<T,N>,N> ddydxx;
-    ddf(x,p,y,dydx,ddydxx);
-    for (const auto& i:ddydxx)
-    for (const auto& j:i)
-    std::cout << j << std::endl;
-
-    std::cout <<"dddf:" << std::endl;
-    std::array<std::array<std::array<T,N>,N>,N> dddydxxx;
-    dddf(x,p,y,dydx,ddydxx,dddydxxx);
-    for (const auto& i:dddydxxx)
-    for (const auto& j:i)
-    for (const auto& k:j)
-    std::cout << k << std::endl;
-
-    std::cout << "Sdf:" << std::endl;
-    std::array<bool,N> sdf;
-    Sdf(x,p,y,sdf);
-    for (const auto& i:sdf) std::cout << i << std::endl;
-
-    std::cout << "dSddf:" << std::endl;
-    std::array<std::array<bool,N>,N> dsddf;
-    dSddf(x,p,y,dsddf);
-    for (const auto& i:dsddf)
+    std::array<std::array<T,N>,N> dydx, d2ydx2;
+    dF(x,p,y,dydx);
+    std::cout << "dF: " << std::endl;
+    for(const auto& i:dydx) 
         for(const auto& j:i)
-        std::cout << j << std::endl;
+            std::cout << j << std::endl;
 
-    std::cout << "dSdddf:" << std::endl;
-    std::array<std::array<bool,N>,N> dsdddf;
-    dSdddf(x,p,y,dsdddf,dddydxxx);
-    for (const auto& i:dsdddf)
-        for(const auto& j:i)
+    ddF(x,p,y,dydx,d2ydx2):
+    std::cout << "ddF: " << std::endl;
+    for(const auto& i:d2ydx2)
+    for(const auto& j:i)
     std::cout << j << std::endl;
-/*
-    std::cout << "Cdf:"<< std::endl;
-    for (size_t i=0; i<N; i++)
-        std::cout << (sdf[i] != dsddf[i]) << std::endl;
-*/
-    std::cout << "dCddf:" << std::endl;
-    for (size_t i=0;i<N;i++) {
-        for(size_t j=0;j<N;j++)
-        std::cout << (dsddf[i][j]!= dsdddf[i][j]) << std::endl;
-    }
-
-
-    // Mal in die main Graph Coloring
-    int rowCount, columnCount;
-    std::string Matrixmaket, s1, s2, s3, s4, s5, s6, s7;
-    std::stringstream ss;
-    int treffer = 0;
-    double*** dp3_Value = new double**;
-    unsigned int *** uip3_SparsityPattern = new unsigned int **;
-
-//for-schleife anpassen
-//Matrix-Name ändern
-    std::cout << "Dim i " << ddydxx[0].size() << std::endl;
-    std::cout << "Dim j " << ddydxx.size() << std::endl;
-
-for (int i = 0; i<ddydxx[0].size(); i++) {
-    for(int j=0;j<ddydxx.size();j++) {
-            if(ddydxx[i][j] != 0){
-                s1 = s1 + std::to_string(i+1) + " " + std::to_string(j+1) + " "+ std::to_string(ddydxx[i][j]) + "\n";
-                treffer = treffer +1;
-            }
-    }
-}
-
-
-
-Matrixmaket = "%%MatrixMarket matrix coordinate real general\n";
-
-Matrixmaket = Matrixmaket + std::to_string(ddydxx[0].size()) + " " + std::to_string(ddydxx.size()) + " "+ std::to_string(treffer) + "\n" +s1;
-
-
-fstream datei;
-datei.open("MatrixMarket.mtx", ios::out);         //Hier möchte ich den Inhalt eines Strings
-datei << Matrixmaket << endl;
-datei.close();
-
-
-
-
-
-
-string s_InputFile; //path of the input file. PICK A SYMMETRIC MATRIX!!!
-s_InputFile = "/home/dc350267/Dokumente/SP_CES/Code/NONLINEAR_SYSTEM/libnls_apps/NamenloserOrdner";
-s_InputFile += "/MatrixMarket.mtx";
-
-
-std::ifstream input(s_InputFile);
-/*
-if (!input)
-{
-  std::cerr << "Datei beim Oeffnen der Datei " << s_InputFile << "\n";
-  return 1;
-}
-
-std::string line;
-
-while (std::getline(input, line))
-{
-   std::cout << s_InputFile << '\n';
-}
-*/
-
-std::cout <<  s_InputFile << std::endl;
-GraphColoringInterface * g = new GraphColoringInterface(SRC_FILE, s_InputFile.c_str(),"AUTO_DETECTED");
-
-//Color the bipartite graph with the specified ordering
-g->Coloring("LARGEST_FIRST", "DISTANCE_TWO");
-
-/*Done with coloring. Below are possible things that you may
-want to do after coloring:
-//*/
-
-/* 1. Check DISTANCE_TWO coloring result
-cout<<"Check DISTANCE_TWO coloring result"<<endl;
-g->CheckDistanceTwoColoring();
-//*/
-
-//* 2. Print coloring results
-g->PrintVertexColoringMetrics();
-//*/
-
-//* 3. Get the list of colorID of vertices
-vector<int> vi_VertexColors;
-g->GetVertexColors(vi_VertexColors);
-
-//Display vector of VertexColors
-printf("vector of VertexColors (size %d) \n", (int)vi_VertexColors.size());
-displayVector(&vi_VertexColors[0], vi_VertexColors.size(), 1);
-//*/
-
-// 4. Get seed matrix
-int i_SeedRowCount = 0;
-int i_SeedColumnCount = 0;
-double** Seed = g->GetSeedMatrix(&i_SeedRowCount, &i_SeedColumnCount);
-
-//Display Seed
-printf("Seed matrix %d x %d \n", i_SeedRowCount, i_SeedColumnCount);
-displayMatrix(Seed, i_SeedRowCount, i_SeedColumnCount, 1);
-
-
-    return 0;
-
 }
