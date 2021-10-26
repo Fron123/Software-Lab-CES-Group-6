@@ -30,21 +30,21 @@ Necessary third party software
 --------------------------------------------
 This solver uses different third party softwares which need to be installed. First of all we use the Software dco for the computation of the derivatives. This software can be downloaded on the Website:
 
-    https://www.nag.com/content/downloads-dco-c-versions   #Download dco
+https://www.nag.com/content/downloads-dco-c-versions   #Download dco
  
 For the compression we use the software ColPack. This Software allows us to minimize our sparse matrices with graph coloring. you will find a further explination at the repository of ColPack. There you can also download the software. You find that repository under:
 
-    https://github.com/CSCsw/ColPack   #Repository ColPack
+https://github.com/CSCsw/ColPack   #Repository ColPack
     
 If you want to use the Terminal follow these instructions:
      
     cd              
     git clone https://github.com/CSCsw/ColPack.git   #Download ColPack
-    cd ColPack                   # go to ColPack Root Directory
+    cd ColPack                                       # go to ColPack Root Directory
 
 And finally you will need the software Eigen. Eigen is used for the computation of the Linear systems. In our case we use the Spase LU solver of Eigen. You can download Eigen on the Website:
 
-    https://eigen.tuxfamily.org/index.php?title=Main_Page
+https://eigen.tuxfamily.org/index.php?title=Main_Page
 
 Build the solver
 ---------------------------------------------
