@@ -12,6 +12,9 @@
 #include <Eigen/SparseLU>
 #include <Eigen/OrderingMethods>
 #include <sparse_newton_system.hpp>
+#include <sparse_newton_function.hpp>
+#include <compression.hpp>
+#include <sparse_newton_solver.hpp>
 #include <chrono>
 
 //system
