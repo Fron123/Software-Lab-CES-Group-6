@@ -23,7 +23,7 @@ Download solver
 --------------------------------------
 If you already got this, you can download this repository directly over this site. If you want to istall this Software directly over the Linux terminal you must follow these instruction:
 
-    git clone https://github.com/Fron123/Software-Lab-CES-Group-5.git   #Download Software
+    git clone https://github.com/Fron123/Software-Lab-CES-Group-5.git  
    
 
 Necessary third party software
@@ -39,9 +39,9 @@ For the compression we use the software ColPack. This Software allows us to mini
 If you want to use the Terminal follow these instructions:
      
     cd              
-    git clone https://github.com/CSCsw/ColPack.git   #Download ColPack
-    cd ColPack                                       # go to ColPack Root Directory
-
+    git clone https://github.com/CSCsw/ColPack.git  
+    cd ColPack                                       
+    
 And finally you will need the software Eigen. Eigen is used for the computation of the Linear systems. In our case we use the Spase LU solver of Eigen. You can download Eigen on the Website:
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;https://eigen.tuxfamily.org/index.php?title=Main_Page
