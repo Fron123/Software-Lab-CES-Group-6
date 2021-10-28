@@ -1,19 +1,18 @@
-#include "dco.hpp"
-#include "ColPackHeaders.h"
+//#include "dco.hpp"
+//#include "ColPackHeaders.h"
 #include <iostream>
 #include <array>
 #include <cmath>
-#include <typeinfo>
-#include <string>
-#include <fstream>
+//#include <typeinfo>
+//#include <string>
+//#include <fstream>
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
-#include <Eigen/Sparse>
-#include <Eigen/SparseLU>
-#include <Eigen/OrderingMethods>
+//#include <Eigen/Sparse>
+//#include <Eigen/SparseLU>
+//#include <Eigen/OrderingMethods>
 #include <new_sparse_newton_system.hpp>
 #include <new_sparse_newton_function.hpp>
-//#include <compression.hpp>
 #include <sparse_newton_solver.hpp>
 #include <chrono>
 
@@ -82,7 +81,7 @@ void solve_system(
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> compressed_dFv_v;
     Eigen::Matrix<double, N,N> full_dFv_v;
 
-    Eigen::Matrix<double,N,1> dx,x_curr,x_prev;
+    Eigen::Matrix<double,N,1> dx,x_curr;
 
     x_curr = x;
 
@@ -180,7 +179,7 @@ void solve_objective(
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> compressed_dFv_v;
     Eigen::Matrix<double, N,N> full_dFv_v;
 
-    Eigen::Matrix<double,N,1> dx,x_curr,x_prev;
+    Eigen::Matrix<double,N,1> dx,x_curr;
 
     x_curr = x;
 
@@ -253,7 +252,7 @@ int main() {
         solve_objective<T,TP,N,NP>(x,p,x_stationary_obj,tol);
         solve_system<T,TP,N,NP>(x,p,x_stationary_sys,tol);
 
-        std::cout << "The solution x of the system of nonlinear equations is: " << std::endl << x_stationary_sys << std::endl;
+        std::cout << "The solution x of the system of nonlinear equations is: " << std::endl << x_stationary_sys << std::endl << " " << std::endl;
 
         Eigen::Matrix<T,N,1> y_stationary;
         Function::F<T,TP,N,NP>(x_stationary_obj,p,y_stationary);
