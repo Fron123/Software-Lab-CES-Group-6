@@ -11,9 +11,9 @@
 #include <Eigen/Sparse>
 #include <Eigen/SparseLU>
 #include <Eigen/OrderingMethods>
-#include <sparse_newton_system.hpp>
-#include <sparse_newton_function.hpp>
-#include <compression.hpp>
+#include <new_sparse_newton_system.hpp>
+#include <new_sparse_newton_function.hpp>
+//#include <compression.hpp>
 #include <sparse_newton_solver.hpp>
 #include <chrono>
 
@@ -27,6 +27,7 @@ void solve_system(
 ){
 
     using namespace System;
+    using namespace Newton_Solver;
 
     //////////////////////////////////////////////////////////////
     // if you want to print out the different derivatives       //
@@ -91,17 +92,18 @@ void solve_system(
     // Anpassen der aufrufe
 
     while(y_s.norm() > tol){
-       Compression::dFv<T,TP,N,NP>(x_curr,p,y_s,sVdF,seed,sparsity_pattern_dFv,CompressedJacobian,dFc,compressed_dFv_v,full_dFv_v);
-       Solver::Newton_Solver<T,TP,N,NP>(x_curr,p,y_s,dFc,full_dFv_v,dx);
+       dFv<T,TP,N,NP>(x_curr,p,y_s,sVdF,seed,sparsity_pattern_dFv,CompressedJacobian,dFc,compressed_dFv_v,full_dFv_v);
+       solve<T,TP,N,NP>(x_curr,p,y_s,dFc,full_dFv_v,dx);
        x_curr = x_curr + dx;
 
        F<T,TP,N,NP>(x_curr,p,y_s);
 
        i++;
     }
-
+/*
     std::cout << "Iterations:" << std::endl << i << std::endl;
     std::cout << "x_statonary:" << std::endl << x_curr << std::endl;
+*/
     x_stationary = x_curr;
 }
 
@@ -114,6 +116,8 @@ void solve_objective(
     float& tol
 ){
     using namespace Function;
+    using namespace Newton_Solver;
+
 
     //////////////////////////////////////////////////////////////
     // if you want to print out the different derivatives       //
@@ -186,8 +190,8 @@ void solve_objective(
     // Anpassen der aufrufe
 
     while(y_f.norm() > tol){
-       Compression::dFv<T,TP,N,NP>(x_curr,p,y_f,sVdF,seed,sparsity_pattern_dFv,CompressedJacobian,dFc,compressed_dFv_v,full_dFv_v);
-       Solver::Newton_Solver<T,TP,N,NP>(x_curr,p,y_f,dFc,full_dFv_v,dx);
+       dFv<T,TP,N,NP>(x_curr,p,y_f,sVdF,seed,sparsity_pattern_dFv,CompressedJacobian,dFc,compressed_dFv_v,full_dFv_v);
+       solve<T,TP,N,NP>(x_curr,p,y_f,dFc,full_dFv_v,dx);
        x_curr = x_curr + dx;
 
        F<T,TP,N,NP>(x_curr,p,y_f);
@@ -195,8 +199,8 @@ void solve_objective(
        i++;
     }
 
-    std::cout << "Iterations:" << std::endl << i << std::endl;
-    std::cout << "x_statonary:" << std::endl << x_curr << std::endl;
+   /* std::cout << "Iterations:" << std::endl << i << std::endl;
+    std::cout << "x_statonary:" << std::endl << x_curr << std::endl;*/
     x_stationary = x_curr;
 }
 
@@ -208,15 +212,15 @@ int main() {
 
     using T=double; using TP=float;
 
-    //////////////////////////////////////////////////////////////
-    //  define the dimensions of your Problem here.             //
-    //  N being the dimensions of x                             //
-    //  NP being the dimensions of p                            //
-    //                                                          //
-    //  select a tolerance tol for newtons method               //
-    //                                                          //
-    //  fill initial values of x and values of p                //  
-    //////////////////////////////////////////////////////////////
+    /************************************************************//**
+    *  define the dimensions of your Problem here.
+    *  N being the dimensions of x
+    *  NP being the dimensions of p
+    *
+    *  select a tolerance tol for newtons method
+    *
+    *  fill initial values of x and values of p
+    ***************************************************************/
 
     const size_t N=5, NP=4;
 
@@ -238,24 +242,24 @@ int main() {
     std::cout << "Please select the Problem you want to solve:" << std::endl;
     std::cout << "To solve a convex unconstraigned minimization problem, type 'm' " << std::endl;
     std::cout << "To solve a system of nonlinear equations, type 's' " <<std::endl;
-    std::cout << "To solve both, please type 'b' " std::endl;
+    std::cout << "To solve both, please type 'b' " <<std::endl;
     std::cin >> decider;
 
-    if(decider == b) {
+    if(decider == 'b') {
 
-        Eigen::Matrix<T,N,1>& x_stationary_obj;
-        Eigen::Matrix<T,N,1>& x_stationary_sys;
+        Eigen::Matrix<T,N,1> x_stationary_obj;
+        Eigen::Matrix<T,N,1> x_stationary_sys;
 
-        solve_objective(x,p,s_stationary_obj,tol);
-        solve_system(x,p,s_stationary_syst,tol)
+        solve_objective<T,TP,N,NP>(x,p,x_stationary_obj,tol);
+        solve_system<T,TP,N,NP>(x,p,x_stationary_sys,tol);
 
         std::cout << "The solution x of the system of nonlinear equations is: " << std::endl << x_stationary_sys << std::endl;
 
         Eigen::Matrix<T,N,1> y_stationary;
-        F<T,TP,N,NP>(x_stationary_obj,p,y_stationary);
+        Function::F<T,TP,N,NP>(x_stationary_obj,p,y_stationary);
 
         Eigen::Matrix<T,N,N> ddydxx;
-        dF<T,TP,N,NP>(x_stationary_obj,p,y_stationary,ddydxx);
+        Function::dF<T,TP,N,NP>(x_stationary_obj,p,y_stationary,ddydxx);
 
         std::cout << "The stationary x for the minimization is: " << std::endl << x_stationary_obj << std::endl;
 
@@ -264,14 +268,14 @@ int main() {
             std::cout << "X erfüllt Minimierung" << std::endl;
         else std::cout << "X erfüllt Minimierung nicht" << std::endl;
     }
-    else if(decider == m) {
-        Eigen::Matrix<T,N,1>& x_stationary_obj;
-        solve_objective(x,p,s_stationary_obj,tol);
+    else if(decider == 'm') {
+        Eigen::Matrix<T,N,1> x_stationary_obj;
+        solve_objective<T,TP,N,NP>(x,p,x_stationary_obj,tol);
         Eigen::Matrix<T,N,1> y_stationary;
-        F<T,TP,N,NP>(x_stationary_obj,p,y_stationary);
+        Function::F<T,TP,N,NP>(x_stationary_obj,p,y_stationary);
 
         Eigen::Matrix<T,N,N> ddydxx;
-        dF<T,TP,N,NP>(x_stationary_obj,p,y_stationary,ddydxx);
+        Function::dF<T,TP,N,NP>(x_stationary_obj,p,y_stationary,ddydxx);
 
         std::cout << "The stationary x for the minimization is: " << std::endl << x_stationary_obj << std::endl;
 
@@ -280,9 +284,9 @@ int main() {
             std::cout << "X erfüllt Minimierung" << std::endl;
         else std::cout << "X erfüllt Minimierung nicht" << std::endl;
     }
-    else if(decider == s) {
-        Eigen::Matrix<T,N,1>& x_stationary_sys;
-        solve_system(x,p,s_stationary_syst,tol)
+    else if(decider == 's') {
+        Eigen::Matrix<T,N,1> x_stationary_sys;
+        solve_system<T,TP,N,NP>(x,p,x_stationary_sys,tol);
         std::cout << "The solution x of the system of nonlinear equations is: " << std::endl << x_stationary_sys << std::endl;
     }
 
