@@ -4,7 +4,7 @@
 COLPACK_ROOT = $(HOME)/Software/ColPack
 EIGEN_DIR=$(HOME)/Software/Eigen
 DCO_DIR=$(HOME)/Software/dco
-BASE_DIR=$(HOME)/SWP/Software-Lab-CES-Group-5
+BASE_DIR=$(HOME)/SWP/Software-Lab-CES-Group-6
 
 COLPACK_SRC = $(wildcard ${COLPACK_ROOT}/src/GeneralGraphColoring/*.cpp)
 COLPACK_SRC+= $(wildcard ${COLPACK_ROOT}/src/Utilities/*.cpp)
