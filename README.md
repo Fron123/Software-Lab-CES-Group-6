@@ -23,7 +23,7 @@ Download solver
 --------------------------------------
 If you already got this, you can download this repository directly over this site. If you want to istall this Software directly over the Linux terminal you must follow these instruction:
 
-    git clone https://github.com/Fron123/Software-Lab-CES-Group-5.git  
+    git clone https://github.com/Fron123/Software-Lab-CES-Group-6.git  
    
 
 Necessary third party software
