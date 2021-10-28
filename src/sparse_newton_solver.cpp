@@ -13,10 +13,10 @@
 #include <Eigen/OrderingMethods>
 
 
-namespace Solver {
+namespace Newton_Solver {
 
 template<typename T, typename TP, size_t N, size_t NP>
-void Newton_Solver(
+void solve(
   const Eigen::Matrix<T, N, 1>& xv,
   const Eigen::Matrix<TP, NP, 1>& p,
   Eigen::Matrix<T, N, 1>& y_s,

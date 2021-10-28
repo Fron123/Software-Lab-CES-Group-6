@@ -95,7 +95,7 @@ for(size_t i = 0;i<N;i++){
 dF<DCO_T, TP, N, NP>(x, p, y, dydx);
 
 for(size_t i=0;i<N;i++){
-    for (size_t j=0; j<N; j++) ddydxx(j,k) += dco::derivative(dydx(j,k));
+    for (size_t j=0; j<N; j++) ddydxx(j,i) += dco::derivative(dydx(j,i));
       dco::derivative(x(i))=0;
     }
   
@@ -133,29 +133,40 @@ void S_dF(
 
 template<typename T, typename TP, size_t N, size_t NP>
 void S_ddF(
-    const Eigen::Matrix<T,N,1>& xv,
-    const Eigen::Matrix<TP,NP,1>& p,
-    Eigen::Matrix<T,N,1>& yv,
-    Eigen::Matrix<bool,N,N> &S_ddF
+    //const Eigen::Matrix<T,N,1>& xv,
+    //const Eigen::Matrix<TP,NP,1>& p,
+    //Eigen::Matrix<T,N,1>& yv,
+    Eigen::Matrix<bool,N,N> &S_ddF,
+    //function
+        Eigen::Matrix<T,N,N>& ddydxx
 ) {
+    /*
     using DCO_T=dco::p1f::type;
     Eigen::Matrix<DCO_T,N,1> x,y;
     Eigen::Matrix<DCO_T,N,N> dydx;
-
     for (size_t i =0;i<N;i++) {
         x[i]=xv[i];
         dco::p1f::set(x[i],true,i);
     }
     dF<DCO_T,TP,N,NP>(x,p,y,dydx);
+    std::cout << "In S_ddF dF:" << std::endl << dydx << std::endl;
     for (size_t i=0; i<N;i++){
         dco::p1f::get(y(i),yv(i));
     for (size_t j=0;j<N;j++) dco::p1f::get(dydx(i,j),S_ddF(i,j),j);
     }
+    */
+    //function
+    for(size_t i=0;i<N;i++){
+        for(size_t j=0;j<N;j++) {
+            if (ddydxx(i,j) != 0) S_ddF(i,j) =1;
+            else S_ddF(i,j) = 0;
+        }
+    }
 }
 
-} //end namespace
+//} //end namespace
 
-/*
+
 
 //Namen der ganzen übergaben ordentlich machen. Was ist was ?
 //Namensgebung wie folgt:
@@ -328,7 +339,7 @@ int cols_seed = seed.cols();
            }
       }
 }
-
+/*
 template<typename T, typename TP, size_t N, size_t NP>
 void Newton_Solver(
   const Eigen::Matrix<T, N, 1>& xv,
@@ -364,3 +375,4 @@ void Newton_Solver(
 
 }
 */
+}

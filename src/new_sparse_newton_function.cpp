@@ -16,6 +16,7 @@ using namespace ColPack;
 
 namespace Function {
 
+
 //objective function
 template<typename T, typename TP, size_t N, size_t NP>
 void f(
@@ -131,9 +132,11 @@ void ddF(
     dF<DCO_T, TP, N, NP>(x, p, y, dydx);
 
     for(size_t i=0;i<N;i++){
-        for (size_t j=0; j<N; j++) ddydxx(j,k) += dco::derivative(dydx(j,k));
+        for (size_t j=0; j<N; j++) ddydxx(j,i) += dco::derivative(dydx(j,i));
         dco::derivative(x(i))=0;
     }
+
+    //FLO: In Zeile 134 steht k da muss aber i rein oder
   
   //änderung
   /*
@@ -200,9 +203,9 @@ void S_ddF(
     }
 }
 
-} //end namespace
+//} //end namespace
 
-/*
+
 
 //Namen der ganzen übergaben ordentlich machen. Was ist was ?
 //Namensgebung wie folgt:
@@ -375,7 +378,7 @@ int cols_seed = seed.cols();
            }
       }
 }
-
+/*
 template<typename T, typename TP, size_t N, size_t NP>
 void Newton_Solver(
   const Eigen::Matrix<T, N, 1>& xv,
@@ -413,3 +416,5 @@ void Newton_Solver(
 }
 
 */
+
+}
