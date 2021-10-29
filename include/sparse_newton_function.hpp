@@ -33,23 +33,37 @@ public:
 
 
     //Methoden
-
+ /**
+ *The given convex nonlinear objective function (y) with their parameters (p) and the initial vector(x) needs to be defined here 
+ */   
     void f(
         const Eigen::Matrix<T,N,1>& x,
         const Eigen::Matrix<TP,NP,1>& p,
         T& y
     );
+    
+ /**
+  * Calculation of the first derivative of the function
+  */
     void df(
         const Eigen::Matrix<T,N,1>& xv,
         const Eigen::Matrix<TP,NP,1>& p,
         T& yv,
         Eigen::Matrix<T,N,1>& dydx
     );
+    
+ /**
+  *The given sparse nonlinear system (y) with their parameters (p) and the initial vector(x) needs to be defined here 
+  */
     void F(
         const Eigen::Matrix<T,N,1>& x,
         const Eigen::Matrix<TP,NP,1>& p,
         Eigen::Matrix<T,N,1>& y
     );
+    
+ /**
+  * Calculation of the first derivative of the system
+  */
     void dF(
         const Eigen::Matrix<T,N,1>& xv,
         const Eigen::Matrix<TP,NP,1>& p,
