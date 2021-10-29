@@ -70,6 +70,10 @@ public:
         Eigen::Matrix<T,N,1>& yv,
         Eigen::Matrix<T,N,N>& dydx
     );
+    
+ /**
+  * Calculation of the second derivative of the system
+  */
     void ddF(
         const Eigen::Matrix<T,N,1>& xv,
         const Eigen::Matrix<TP,NP,1>& p,
@@ -77,18 +81,30 @@ public:
         Eigen::Matrix<T,N,N>& dydx_v,
         Eigen::Matrix<T,N,N>& ddydxx
     );
+    
+ /**
+  * Calculation of the sparsity pattern of the first derivative of the system, constant entries are set to true
+  */
     void S_dF(
         const Eigen::Matrix<T,N,1>& xv,
         const Eigen::Matrix<TP,NP,1>& p,
         Eigen::Matrix<T,N,1>& yv,
         Eigen::Matrix<bool,N,N> &S_dF_2
     );
+    
+ /**
+  * Calculation of the sparsity pattern of the second derivative of the system, constant entries are set to true
+  */
     void S_ddF(
         const Eigen::Matrix<T,N,1>& xv,
         const Eigen::Matrix<TP,NP,1>& p,
         Eigen::Matrix<T,N,1>& yv,
         Eigen::Matrix<bool,N,N> &S_ddF_2
     );
+    
+ /**
+  * Calculation of the sparsity pattern of the first derivative of the system, variable entries are set to true
+  */
     void dFv(
       const Eigen::Matrix<T, N, 1>& xv,
       const Eigen::Matrix<TP, NP, 1>& p,
@@ -101,6 +117,10 @@ public:
       Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& compressed_dFv_v,
       Eigen::Matrix<double, N,N>& full_dFv_v
     );
+    
+ /**
+  * Calculate the solution of the sparse System using Newton's method and Jacobion compression
+  */
     void Newton_Solver(
       const Eigen::Matrix<T, N, 1>& xv,
       const Eigen::Matrix<TP, NP, 1>& p,
