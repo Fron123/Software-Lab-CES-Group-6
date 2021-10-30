@@ -60,5 +60,5 @@ In this Example you can see the third party software are all together in one Fol
 then you must change the path to $(HOME)/Documents/Stuff/ColPack. The same goes for the others paths. 
 
 Usages
---------------------------------------------
-Compute big shit in very long time
+---------------------------------------------
+THe software will be able to solve optimaization problems, i.e to conmpute minimum or maximum or stationary point/s of a function using numerical methods.
