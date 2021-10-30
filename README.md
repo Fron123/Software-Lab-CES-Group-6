@@ -61,4 +61,5 @@ then you must change the path to $(HOME)/Documents/Stuff/ColPack. The same goes 
 
 Usages
 ---------------------------------------------
-THe software will be able to solve optimaization problems, i.e to conmpute minimum or maximum or stationary point/s of a function using numerical methods.
+The software will be able to solve optimaization problems, i.e to compute minimum or maximum or stationary point/s of a function using numerical methods.
+A real world use of our software can be in operation of a power plant to maximize the costs. Where the physical entites such as mass or density of the material can be our input vector x and other physical contraints such as thermodynamic laws, conversation laws can be our parameter vector.
