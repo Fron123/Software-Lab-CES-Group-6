@@ -12,7 +12,7 @@
 
 # Solver
 
-Some Discription of the solver should look like the one in the Report
+The software computes the solution of a differentiable parametrized sparse system of nonlinear equations with the residual F(x,p) = 0 using Newton’s method F'(x_{k})*\Delta(x_{k})=-F(x_{k}) with: Delta(x_{k}) = x_{k+1}-x_{k} and a convex unconstrained minimization problem min(f(x,p)) , f'(x,p) = 0 by exploiting the sparsity of the Jacobian and its variable and constant submatrices. This finds usage in finding for example a solution for KKT systems see e.g
 
 
 Installation Guide
