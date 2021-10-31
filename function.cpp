@@ -22,23 +22,9 @@ void solve_system(
     Eigen::Matrix<TP,NP,1> p,
     Eigen::Matrix<T,N,1>& x_stationary
 ){
-    //Eigen::Matrix<TP,NP,1> p;
-    float tol = 0.01;
 
-    //x << 1,1,1,1,1,1,1,1,1,1;
-    //for(size_t i=0;i<N;i++) x(i) = 1;
-
-    //std::cout << "Startvektor_system:" << std::endl << p_y << std::endl;
-//Der teil ist irrelevant fürs system und kann mit f und df ausgelagert werden
-/*
-    std::cout << "f:" << std::endl;
-    f<T,TP,N,NP>(x,p,y);
-    std::cout << y << std::endl;
-    std::cout << "df:" << std::endl;
-    Eigen::Matrix<T,N,1> dydx;
-    df<T,TP,N,NP>(x,p,y,dydx);
-    for (const auto& i:dydx) std::cout << i << std::endl;
-*/
+    float tol = 0.01;       //tolerance
+    
     Eigen::Matrix<T,N,1> y_s;
     F<T,TP,N,NP>(x,p,y_s);
     std::cout << "F:" << std::endl << y_s << std::endl;
@@ -102,16 +88,12 @@ void solve_system(
 
     T y_newton;
     Eigen::Matrix<T,N,1> dydx_newton;
-    // Anpassen der aufrufe
 
     while(y_s.norm() > tol){
        dFv<T,TP,N,NP>(x_curr,p,y_s,sVdF,seed,sparsity_pattern_dFv,CompressedJacobian,dFc,compressed_dFv_v,full_dFv_v);
        Newton_Solver<T,TP,N,NP>(x_curr,p,y_s,dFc,full_dFv_v,dx);
        x_curr = x_curr + dx;
 
-
-       //f<T,TP,N,NP>(x_curr,p,y_newton);
-       //df<T,TP,N,NP>(x_curr,p,y_newton,dydx_newton);
        F<T,TP,N,NP>(x_curr,p,y_s);
 
        i++;
@@ -123,12 +105,11 @@ void solve_system(
     x_stationary = x_curr;
 }
 
-constexpr int MIN = 2;                                                     //Definitionsbereich der Funktion
+constexpr int MIN = 2;                                                     //domain of the function
 constexpr int MAX = 10;
 
 int main() {
 
-    //Hier der Shit ist nur für die Laufzeitanalyse
     std::fstream myfile;
     myfile.open("runtimes.txt");
     auto start = std::chrono::steady_clock::now();
@@ -148,11 +129,11 @@ int main() {
     float tol = 1e-6;
 
 
-    //Startvektor Eingeben
+    //enter initial vector
     for(size_t i=0;i<N;i++) x(i) = MIN + (double)(rand()) / ((double)(RAND_MAX/(MAX - MIN)));
     p(0) = 1;
     p(1) = 100;
-    std::cout << "Startvektor:" << std::endl << x << std::endl;
+    std::cout << "Initial vector: " << std::endl << x << std::endl;
 
 
     std::cout << "f:" << std::endl;
@@ -174,8 +155,8 @@ int main() {
 
     T output = x_stationary.transpose() * ddydxx * x_stationary;
     if(output > 0 )
-        std::cout << "X erfüllt Minimierung" << std::endl;
-    else std::cout << "X erfüllt Minimierung nicht" << std::endl;
+        std::cout << "X fulfills minimization" << std::endl;
+    else std::cout << "X does not fulfill minimization" << std::endl;
 
 
 
