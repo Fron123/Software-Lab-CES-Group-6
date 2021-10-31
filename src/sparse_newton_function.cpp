@@ -14,8 +14,6 @@
 
 using namespace ColPack;
 
-//objective function
-//auslagern, dann folgendes:
 template<typename T, typename TP, size_t N, size_t NP>
 void f(
     const Eigen::Matrix<T,N,1>& x,
@@ -25,7 +23,7 @@ void f(
     T sum=0;
     using namespace std;
     for (size_t i =0;i<N-1;i++) sum += p[1]*pow(x[i+1]-pow(x[i],2),2)+pow(p[0]-x[i],2);
-    y = sum; //funktionsinput
+    y = sum; //function input
 }
 
 //first derivative (gradient)
@@ -53,8 +51,6 @@ void df(
     DCO_TT::remove(DCO_M::global_tape);
 }
 
-//dydx an "Hauptfunktion übergeben mit y_s = dydx
-//Ende f
 
 //System F
 template<typename T, typename TP, size_t N, size_t NP>
@@ -63,16 +59,12 @@ void F(
     const Eigen::Matrix<TP,NP,1>& p,
     Eigen::Matrix<T,N,1>& y
 ){
-    //for(size_t i = 0; i < N; i++)
-        //y(i) = -(x(i)*x(i))+i+1; //system
-        //y(i) = x(i); //function
     T y_f;
     //std::cout << "f:" << std::endl;
     f<T,TP,N,NP>(x,p,y_f);
     //std::cout << y_f << std::endl;
 
     //std::cout << "df:" << std::endl;
-    //Eigen::Matrix<T,N,1> dydx;
     df<T,TP,N,NP>(x,p,y_f,y);
     //std::cout << y << std::endl;
 }
@@ -158,28 +150,10 @@ void S_dF(
 
 template<typename T, typename TP, size_t N, size_t NP>
 void S_ddF(
-    //const Eigen::Matrix<T,N,1>& xv,
-    //const Eigen::Matrix<TP,NP,1>& p,
-    //Eigen::Matrix<T,N,1>& yv,
     Eigen::Matrix<bool,N,N> &S_ddF,
     //function
         Eigen::Matrix<T,N,N>& ddydxx
 ) {
-    /*
-    using DCO_T=dco::p1f::type;
-    Eigen::Matrix<DCO_T,N,1> x,y;
-    Eigen::Matrix<DCO_T,N,N> dydx;
-    for (size_t i =0;i<N;i++) {
-        x[i]=xv[i];
-        dco::p1f::set(x[i],true,i);
-    }
-    dF<DCO_T,TP,N,NP>(x,p,y,dydx);
-    std::cout << "In S_ddF dF:" << std::endl << dydx << std::endl;
-    for (size_t i=0; i<N;i++){
-        dco::p1f::get(y(i),yv(i));
-    for (size_t j=0;j<N;j++) dco::p1f::get(dydx(i,j),S_ddF(i,j),j);
-    }
-    */
     //function
     for(size_t i=0;i<N;i++){
         for(size_t j=0;j<N;j++) {
@@ -189,18 +163,6 @@ void S_ddF(
     }
 }
 
-
-//Namen der ganzen übergaben ordentlich machen. Was ist was ?
-//Namensgebung wie folgt:
-//Ableitungen: dF, ddF etc.
-//Sparsity: S_
-//Variabler teil Jacobi dFv
-//konstanter Teil Jacobi dFc
-//Seedmatrix V_
-//compressed comp_
-//Konstante elemente C_
-
-//Beispiel comp_S_dFv ist das komprimierte Sparsitypattern der variablen Teilmatrix der Jacobimatrix
 
 //Decompressed
 template<typename T, typename TP, size_t N, size_t NP>
@@ -316,8 +278,6 @@ int cols_seed = seed.cols();
 
   compressed_dFv_v = CompressedJacobian - CdF_ * seed;
 
-//Recovery Teil - fixed by Matteo
-
    std::vector<std::vector<double>> fulldFv(N,std::vector<double>(N,0.0));
 
     int rows_cj = compressed_dFv_v.rows();
@@ -372,10 +332,10 @@ void Newton_Solver(
   Eigen::Matrix<double, N, 1>& dx
 ) {
 
-    //Jacobi berechnen
+    //calculate Jacobian
     Eigen::Matrix<T,N,N> J;
     J = full_dFc + full_dFv;
-    //Sparse Matrix A generieren
+    //generate sparse matrix A
     Eigen::SparseMatrix<T> A(N,N);
     for(size_t i=0;i<N;i++){
         for(size_t j=0;j<N;j++){
@@ -386,8 +346,7 @@ void Newton_Solver(
     }
 
 
-
-    //Rechte Seite y_s wird hier überschrieben
+    //right-hand side y_s is overwritten here
     F<T,TP,N,NP>(xv,p,y_s);
 
     A.makeCompressed();
