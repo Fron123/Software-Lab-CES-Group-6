@@ -17,7 +17,7 @@
 
 int main() {
 
-    //Laufzeitanalyse
+    //runtime analysis
     auto start = std::chrono::steady_clock::now();
     std::srand(std::time(nullptr));
 
@@ -25,23 +25,13 @@ int main() {
     const size_t N=90, NP=3;
     Eigen::Matrix<T,N,1> x,y;
     Eigen::Matrix<TP,NP,1> p;
-    float tol = 1e-6;
+    float tol = 1e-6;   //tolerance
 
-    //x << 1,1,1,1,1,1,1,1,1,1;
     for(size_t i=0;i<N;i++) x(i) = 1;
 
     p(0) = 7;
-    //std::cout << "Startvektor:" << std::endl << x << std::endl;
-//Der teil ist irrelevant fürs system und kann mit f und df ausgelagert werden
-/*
-    std::cout << "f:" << std::endl;
-    f<T,TP,N,NP>(x,p,y);
-    std::cout << y << std::endl;
-    std::cout << "df:" << std::endl;
-    Eigen::Matrix<T,N,1> dydx;
-    df<T,TP,N,NP>(x,p,y,dydx);
-    for (const auto& i:dydx) std::cout << i << std::endl;
-*/
+    //std::cout << "Initial value:" << std::endl << x << std::endl;
+
     Eigen::Matrix<T,N,1> y_s;
     F<T,TP,N,NP>(x,p,y_s);
     //std::cout << "F:" << std::endl;
@@ -108,7 +98,7 @@ int main() {
 
   //  std::cout << y_s.norm() << std::endl;
 
-    // Anpassen der aufrufe
+    //adjust the call
     while(y_s.norm() > tol){
        dFv<T,TP,N,NP>(x_curr,p,y_s,sVdF,seed,sparsity_pattern_dFv,CompressedJacobian,dFc,compressed_dFv_v,full_dFv_v);
        Newton_Solver<T,TP,N,NP>(x_curr,p,y_s,dFc,full_dFv_v,dx);
@@ -120,7 +110,7 @@ int main() {
 
 
     //std::cout << "x_stationary:" << std::endl << x_curr << std::endl;
-    std::cout << "Iterationen:" << std::endl << i << std::endl;
+    std::cout << "Iterations:" << std::endl << i << std::endl;
     auto end = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
 
