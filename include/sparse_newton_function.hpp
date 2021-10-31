@@ -10,7 +10,7 @@
 template<typename T,typename TP,size_t N,size_t NP>
 class sparse_newton{
 public:
-    //Variablen
+    //Variables
     const Eigen::Matrix<T,N,1>& x;
     const Eigen::Matrix<TP,NP,1>& p;
     T& y;
@@ -32,7 +32,7 @@ public:
     Eigen::Matrix<double,N,N> full_dFc;
 
 
-    //Methoden 
+    //Methods
     void f(
         const Eigen::Matrix<T,N,1>& x,
         const Eigen::Matrix<TP,NP,1>& p,
