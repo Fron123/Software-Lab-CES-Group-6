@@ -313,8 +313,7 @@ int cols_seed = seed.cols();
       for(int i = 0; i < nnz; i++){
           fulldFv[rowIndex[i]][colIndex[i]] = jacValue[i];
       }
-    // Hier noch fulldFV in eigen übertragen!!
-
+    //here fulldFV is conveyed into eigen 
        for(int i=0; i<N; i++){
            for(int j=0; j<N; j++){
                full_dFv_v(i,j) = fulldFv[i][j];
