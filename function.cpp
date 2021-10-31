@@ -89,6 +89,7 @@ void solve_system(
     T y_newton;
     Eigen::Matrix<T,N,1> dydx_newton;
 
+    //adjust the call
     while(y_s.norm() > tol){
        dFv<T,TP,N,NP>(x_curr,p,y_s,sVdF,seed,sparsity_pattern_dFv,CompressedJacobian,dFc,compressed_dFv_v,full_dFv_v);
        Newton_Solver<T,TP,N,NP>(x_curr,p,y_s,dFc,full_dFv_v,dx);
