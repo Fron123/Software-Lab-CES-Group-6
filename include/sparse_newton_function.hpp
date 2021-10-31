@@ -52,9 +52,6 @@ public:
         Eigen::Matrix<T,N,1>& y
     );
     
- /**
-  * Calculation of the first derivative of the system
-  */
     void dF(
         const Eigen::Matrix<T,N,1>& xv,
         const Eigen::Matrix<TP,NP,1>& p,
