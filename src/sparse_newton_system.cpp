@@ -14,10 +14,6 @@
 
 using namespace ColPack;
 
-
-//dydx an "Hauptfunktion übergeben mit y_s = dydx
-//Ende f
-
 //System F
 template<typename T, typename TP, size_t N, size_t NP>
 void F(
@@ -33,6 +29,7 @@ void F(
      y(i) = x(i)*x(i)+sum-p(0)*x(i);
 }
 }
+
 //first derivative (Jacobian)
 template<typename T, typename TP, size_t N, size_t NP>
 void dF(
@@ -134,19 +131,6 @@ void S_ddF(
     }
 }
 
-
-//Namen der ganzen übergaben ordentlich machen. Was ist was ?
-//Namensgebung wie folgt:
-//Ableitungen: dF, ddF etc.
-//Sparsity: S_
-//Variabler teil Jacobi dFv
-//konstanter Teil Jacobi dFc
-//Seedmatrix V_
-//compressed comp_
-//Konstante elemente C_
-
-//Beispiel comp_S_dFv ist das komprimierte Sparsitypattern der variablen Teilmatrix der Jacobimatrix
-
 //Decompressed
 template<typename T, typename TP, size_t N, size_t NP>
 void dFv(
@@ -183,16 +167,6 @@ if(max > N){
       Eigen::Matrix<DCO_T, N, 1> x;
       Eigen::Matrix<DCO_T, N, 1> yv;
       Eigen::Matrix<DCO_T, N, 1> y;
-      /*Eigen::Matrix<DCO_T, N, N> seed2;
-
-      for(size_t i = 0;i<N;i++){
-          for(size_t j = 0;j<N;j++){
-              if(i==j){
-                  seed2(i,j)=1;
-              }
-          }
-      }*/
-
 
       Eigen::MatrixXd seed2 = Eigen::MatrixXd::Identity(N,N);
 
@@ -312,8 +286,6 @@ int cols_seed = seed.cols();
 
   compressed_dFv_v = CompressedJacobian - CdF_ * seed;
 
-//Recovery Teil - fixed by Matteo
-
    std::vector<std::vector<double>> fulldFv(N,std::vector<double>(N,0.0));
 
     int rows_cj = compressed_dFv_v.rows();
@@ -349,8 +321,8 @@ int cols_seed = seed.cols();
       for(int i = 0; i < nnz; i++){
           fulldFv[rowIndex[i]][colIndex[i]] = jacValue[i];
       }
-    // Hier noch fulldFV in eigen übertragen!!
-
+  
+  //fulldFV is conveyed into eigen
        for(int i=0; i<N; i++){
            for(int j=0; j<N; j++){
                full_dFv_v(i,j) = fulldFv[i][j];
@@ -370,7 +342,7 @@ void Newton_Solver(
   Eigen::Matrix<double, N, 1>& dx
 ) {
 
-    //Jacobi berechnen
+    //calculate Jacobian
     Eigen::Matrix<T,N,N> J;
     J = full_dFc + full_dFv;
     //Sparse Matrix A generieren
@@ -383,7 +355,7 @@ void Newton_Solver(
         }
     }
 
-    //Rechte Seite y_s wird hier überschrieben
+    //right-hand side y_s is overwritten here
     F<T,TP,N,NP>(xv,p,y_s);
 
     A.makeCompressed();
